@@ -24,7 +24,7 @@ function Navbar() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="navbar glass">
+    <nav className="navbar">
       <div className="nav-left">
         <Link to="/" className="nav-brand">
           <img src={logo} alt="SmartHood Logo" className="nav-logo" />
@@ -50,17 +50,12 @@ function Navbar() {
             <Link to="/notifications" className={`nav-link ${isActive('/notifications') ? 'active' : ''}`}>
               <FaBell /> <span>{t("nav_notifications")}</span>
             </Link>
-            {user.role === 'Admin' && (
-              <Link to="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`}>
-                <FaUserShield /> <span>{t("nav_admin")}</span>
-              </Link>
-            )}
           </>
         )}
       </div>
 
       <div className="nav-right">
-        <div className="lang-switcher glass">
+        <div className="lang-switcher">
           <button
             className={i18n.language === 'en' ? 'active' : ''}
             onClick={() => i18n.changeLanguage("en")}
@@ -72,7 +67,7 @@ function Navbar() {
         </div>
 
         {user ? (
-          <div className="user-dropdown glass">
+          <div className="user-dropdown">
             <div className="user-trigger" onClick={() => navigate('/profile')}>
               <div className="user-avatar-small">
                 {user.name[0]}

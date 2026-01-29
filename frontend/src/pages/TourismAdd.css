@@ -1,10 +1,10 @@
 .tourism-add-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background-color: var(--bg-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: var(--space-md);
 }
 
 .modal-overlay {
@@ -13,93 +13,69 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(15, 23, 42, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    padding: 20px;
+    padding: var(--space-md);
+    backdrop-filter: blur(8px);
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid #f1f5f9;
+    margin-bottom: var(--space-lg);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--gray-100);
 }
 
 .modal-header h2 {
-    font-size: 1.8rem;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
     font-weight: 800;
-    color: #1e293b;
+    color: var(--primary);
     margin: 0;
 }
 
 .close-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
     border: none;
-    background: #fee2e2;
-    color: #ef4444;
-    font-size: 1.2rem;
+    background: var(--error-light);
+    color: var(--error);
+    font-size: 1rem;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .close-btn:hover {
-    background: #ef4444;
+    background: var(--error);
     color: white;
+    transform: rotate(90deg);
 }
 
 .message {
-    padding: 12px 20px;
-    border-radius: 10px;
-    margin-bottom: 15px;
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
     font-weight: 600;
     text-align: center;
+    font-size: 0.9rem;
 }
 
 .message.success {
-    background: #d1fae5;
-    color: #065f46;
-    border: 2px solid #10b981;
+    background: var(--success-light);
+    color: var(--success-dark);
+    border: 1px solid var(--success);
 }
 
 .message.error {
-    background: #fee2e2;
-    color: #991b1b;
-    border: 2px solid #ef4444;
-}
-
-.premium-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid #f3f4f6;
-    border-top: 4px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.loader-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
+    background: var(--error-light);
+    color: var(--error-dark);
+    border: 1px solid var(--error);
 }

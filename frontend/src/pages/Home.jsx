@@ -121,56 +121,31 @@ function Home() {
     <div className="home-layout">
       <Navbar />
 
-      {/* Hero Section */}
-      <div className="home-container">
-        <motion.h1
-          className="home-title"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          {t("welcome")} {user?.name}!
-        </motion.h1>
-
-        {/* State Slideshow */}
-        <StateSlideshow
-          onStateSelect={(state) => {
-            setShowGeographicNav(true);
-            setSelectedLocation({ state, district: null, town: null, locality: null });
-          }}
-        />
-
-        {/* Geographic Navigation - Toggleable */}
+      {/* Main Container for Navigation & Content */}
+      <div className="container">
+        {/* Geographic Navigation - Toggleable Flow */}
         {showGeographicNav && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="geographic-nav-wrapper glass"
           >
             <div className="nav-header">
-              <h2>🗺️ Explore by Location</h2>
+              <h3 className="gradient-text">🗺️ {t("explore_location") || "Explore by Location"}</h3>
               <button
                 className="close-nav-btn"
                 onClick={() => setShowGeographicNav(false)}
               >
-                ✕ Close
+                ✕
               </button>
             </div>
             <GeographicNav
               onLocationChange={(location) => {
                 setSelectedLocation(location);
-                // TODO: Fetch location-specific content
+                // Location-specific filtering is handled by the component
               }}
             />
           </motion.div>
-        )}
-
-        {!showGeographicNav && (
-          <button
-            className="show-nav-btn"
-            onClick={() => setShowGeographicNav(true)}
-          >
-            🗺️ Browse by Location
-          </button>
         )}
       </div>
 
@@ -186,9 +161,11 @@ function Home() {
             <FaMapMarkerAlt /> {user?.locality}, {user?.city}, {user?.state}
           </div>
           <h1 className="hero-title">
-            Welcome to <span className="gradient-text">Smart Hood</span>
+            Welcome to <span className="secondary-gold">Smart Hood</span>
           </h1>
-          <p className="hero-subtitle">{t("hero_description") || "Connect with your community"}</p>
+          <p className="hero-subtitle">
+            {t("welcome")}, <span className="user-highlight">{user?.name}</span>! {t("hero_description") || "Your neighborhood, connected and smarter."}
+          </p>
 
           <div className="hero-actions">
             <button className="btn-premium" onClick={() => navigate('/emergency')}>
@@ -200,6 +177,17 @@ function Home() {
           </div>
         </motion.div>
       </header>
+
+      <div className="container">
+        {!showGeographicNav && (
+          <button
+            className="show-nav-btn"
+            onClick={() => setShowGeographicNav(true)}
+          >
+            🗺️ Browse by Location
+          </button>
+        )}
+      </div>
 
       {/* State Slideshow Section */}
       {
