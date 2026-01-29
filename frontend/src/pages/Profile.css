@@ -1,0 +1,238 @@
+.profile-layout {
+    min-height: 100vh;
+}
+
+.profile-container {
+    max-width: 800px;
+    margin: 80px auto;
+    padding: 60px;
+    background: white;
+    border-radius: 40px;
+    box-shadow: 0 40px 100px -20px rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(15, 23, 42, 0.05);
+}
+
+.profile-container h2 {
+    margin-bottom: 50px;
+    font-size: 3.2rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-align: center;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-group {
+    padding: 25px 30px;
+    background: #f8fafc;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    transition: var(--transition-smooth);
+}
+
+.form-group:focus-within {
+    background: white;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 5px rgba(217, 119, 6, 0.05);
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+
+.input-with-voice {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.profile-form input,
+.profile-form select {
+    flex: 1;
+    background: transparent;
+    border: none;
+    font-size: 1.15rem;
+    color: var(--primary);
+    outline: none;
+    font-weight: 700;
+}
+
+.profile-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.profile-header {
+  padding: 30px;
+  margin-bottom: 30px;
+  border-radius: 15px;
+}
+
+.avatar-section {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: white;
+  font-weight: bold;
+}
+
+.header-info h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.8rem;
+}
+
+.unique-id-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.profession-tag {
+  color: #6c757d;
+  margin: 5px 0;
+}
+
+.mic-icon-btn {
+    background: white;
+    color: var(--secondary);
+    border: 1px solid #e2e8f0;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    font-size: 1.1rem;
+}
+
+.mic-icon-btn:hover {
+    background: var(--secondary);
+    color: white;
+    border-color: var(--secondary);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+.alert-message {
+    padding: 20px 30px;
+    background: #ecfdf5;
+    border: 1px solid #10b981;
+    color: #065f46;
+    border-radius: 16px;
+    margin-bottom: 40px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+.disabled-input {
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.profile-actions {
+    margin-top: 30px;
+}
+
+.profile-actions .btn-premium {
+    width: 100%;
+}
+
+/* Profile Stats */
+.profile-stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #f1f5f9;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* Locality Warning */
+.locality-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 16px;
+    margin-top: -10px;
+}
+
+.locality-warning strong {
+    color: #b45309;
+    font-size: 0.95rem;
+}
+
+.locality-warning p {
+    margin: 5px 0 0;
+    color: #92400e;
+    font-size: 0.85rem;
+}
+
+.warning-input {
+    border: 2px solid #f59e0b !important;
+    background: #fffbeb !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-container {
+        margin: 20px;
+        padding: 30px 20px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-stats-row {
+        flex-direction: column;
+        align-items: center;
+    }
+}

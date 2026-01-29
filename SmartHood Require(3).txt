@@ -1,0 +1,697 @@
+SMART HOOD (మన పరిసర వేదిక)
+A Multilingual, Hyperlocal, Intelligent Community Collaboration Platform
+1. Project Vision & Purpose
+
+Smart Hood is a hyperlocal digital platform that connects people within structured geographic boundaries (State → District → Town → Locality) to collaborate on services, emergencies, education, tourism, and community development.
+
+The platform is designed to:
+
+Build local trust
+
+Encourage human-to-human interaction
+
+Avoid unnecessary global exposure
+
+Provide intelligent, context-aware communication
+
+Be visually attractive, modern, and professional
+
+2. Core Objectives
+
+Enable easy login using username + phone number (no OTP)
+
+Ensure a visually appealing and elegant UI to attract users
+
+Provide hyperlocal service discovery and collaboration
+
+Use Unique User IDs for accountability and revenue tracking
+
+Deliver phone-based notifications (mandatory) and email notifications (optional)
+
+Enable emergency communication with priority handling
+
+Track revenue generated and revenue spent transparently
+
+Promote local tourism and businesses as a core feature
+
+Provide secure, role-based admin governance
+
+Ensure scalability, performance, and AI-builder readiness
+
+FRONTEND REQUIREMENTS
+3. User Roles & Access
+3.1 Normal User
+
+Resident, professional, volunteer, or student
+
+Can:
+
+Register & log in
+
+Request or provide services
+
+Receive notifications
+
+Show interest in services
+
+Communicate privately after interest
+
+Track activity, impact, and revenue
+
+Explore tourism and local places
+
+3.2 Student User
+
+Activated when Profession = Student.
+
+Extra features:
+
+Student-only groups
+
+Academic help requests
+
+Skill volunteering
+
+Student analytics and leaderboards
+
+3.3 Admin User (Verified Access)
+
+Admin entry shown on initial website landing page
+
+Label: “Admin Login”
+
+Admin access granted only if:
+
+Logged-in phone number matches one of 5 pre-approved admin phone numbers
+
+Admin features:
+
+Analytics dashboards
+
+Emergency monitoring
+
+Complaint review
+
+User & locality statistics
+
+Admins cannot:
+
+Access private chats
+
+Modify revenue
+
+Change ratings
+
+4. UI / UX DESIGN REQUIREMENTS (HIGH PRIORITY)
+4.1 Overall UI Theme Philosophy
+
+The UI must feel:
+
+Clean
+
+Trustworthy
+
+Community-oriented
+
+Modern and professional
+
+Design principles:
+
+Minimal clutter
+
+Clear visual hierarchy
+
+Smooth transitions
+
+Mobile-first responsiveness
+
+4.2 Color Theme & Combinations
+Primary Theme (Default)
+
+Primary Color: Deep Blue / Indigo
+→ Trust, stability, professionalism
+
+Secondary Color: Soft Green / Teal
+→ Community, growth, positivity
+
+Accent Color: Warm Orange
+→ Actions, highlights, call-to-action
+
+Emergency Color: Red
+→ High visibility, urgency
+
+Background
+
+Light grey / off-white for comfort
+
+Dark mode support (optional future scope)
+
+Buttons
+
+High contrast (no blending with background)
+
+Rounded corners
+
+Hover and pressed states
+
+Clear primary vs secondary button distinction
+
+4.3 Theme Selection (Optional Extension)
+
+Users may choose between:
+
+Light theme
+
+Dark theme
+
+Theme preference stored per user
+
+5. Registration & Login System (NO OTP)
+5.1 Registration Form (Step-Based UI)
+Mandatory Fields
+
+Username (unique)
+
+Full Name
+
+Phone Number
+
+Age
+
+Gender
+
+Complete Address
+
+Locality
+
+Town
+
+District
+
+State
+
+Profession
+
+Years of Experience
+
+Monthly Income
+
+Blood Group
+
+Nationality
+
+Preferred Language
+
+Optional Field
+
+Email Address (clearly marked optional)
+
+Voice-to-text support:
+
+Enabled for all text fields
+
+Preview & edit before submission
+
+5.2 Unique User ID Generation
+
+Generated at registration
+
+Format: 3 uppercase letters + 2 digits (e.g., SHD48)
+
+Stored and displayed:
+
+Beside user name
+
+In profile
+
+In service notifications
+
+Used for:
+
+Service completion confirmation
+
+Revenue tracking
+
+Identity reference
+
+5.3 Welcome Notification Logic
+
+After registration:
+
+If email exists → send welcome email
+
+If not → send phone/in-app notification
+
+Message includes:
+
+User name
+
+Unique User ID
+
+Warm greeting from Smart Hood
+
+5.4 Login Interface (NO OTP – NEW)
+Login Inputs
+
+Username
+
+Phone Number
+
+Login Logic
+
+System validates:
+
+Username + phone number combination
+
+No OTP, no password
+
+UI Requirements
+
+Centered login card
+
+Large input fields
+
+Clear typography
+
+Friendly welcome message
+
+Animated focus effects
+
+Error messages shown softly (not aggressive)
+
+6. Home Page & Navigation
+6.1 Home Dashboard
+
+Displays:
+
+Emergency alerts (top priority)
+
+State cards
+
+Profession service cards
+
+Events and announcements
+
+6.2 Geographic Hierarchy Navigation
+
+Flow:
+
+State → District → Town → Locality
+
+Each card displays:
+
+Name
+
+Total user count
+
+Auto-fetched web image
+
+6.3 Card Image Rules
+
+Every card must have an image
+
+Locality images fetched automatically from web
+
+Profession cards use representative profession images
+
+6.4 Profession Card Drill-Down
+
+Clicking a profession card shows a list:
+
+User name
+
+Unique ID (side-by-side)
+
+Locality
+
+Profession
+
+7. Service Request & Interest Flow
+7.1 Raising a Service Request
+
+Inputs:
+
+Text + mandatory voice
+
+Category
+
+Location context
+
+Notification sent to:
+
+Relevant users only
+
+Notification content:
+
+Requester name
+
+Locality
+
+Service details
+
+Unique User ID
+
+7.2 “I’m Interested” Flow
+
+When a user clicks I’m Interested:
+
+Requester’s phone number becomes visible
+
+Private communication happens outside the platform
+
+7.3 Post-Completion Confirmation
+
+After predefined time:
+
+System asks requester:
+
+Work completed? (Yes / No)
+
+If Yes:
+
+Requester submits:
+
+Unique ID of service provider
+
+Money spent (optional)
+
+7.4 Revenue Display Rules (Mandatory)
+
+If money entered:
+
+Provider profile:
+
+Revenue Generated
+
+Requester profile:
+
+Revenue Spent
+
+If no money entered:
+
+Values remain zero but fields still displayed
+
+Every user profile must show:
+
+Revenue Generated
+
+Revenue Spent
+
+8. Notifications Module
+8.1 Main Tabs
+
+Provide Service
+
+Ask Service
+
+8.2 Sub-Categories
+
+Official
+
+Emergency
+
+Community
+
+Specific
+
+8.3 Specific Notification Flow
+
+If Specific selected:
+
+For All / To Specific
+
+If To Specific:
+
+Choose profession
+
+Select people
+
+Chatbox opens:
+
+Text
+
+Voice
+
+Attachments
+
+On submit:
+
+Phone notification sent
+
+Email also sent if available
+
+9. Emergency Module
+
+Supports:
+
+Blood donation
+
+Medical emergencies
+
+Accidents
+
+Fire & safety
+
+Missing persons
+
+Natural disasters
+
+Custom voice-defined emergencies
+
+Features:
+
+Priority levels
+
+Distinct UI & sound
+
+Auto-close
+
+Abuse rate limiting
+
+10. Tourism & Local Discovery (CORE FEATURE)
+
+Tourism page must display:
+
+Top restaurants
+
+Movie halls
+
+Shopping malls
+
+Tourist places
+
+Scope:
+
+User’s city
+
+Nearby towns & localities
+
+Each card shows:
+
+Image
+
+Name
+
+Category
+
+Short description
+
+Location
+
+11. Profile & Activity Page
+
+Displays:
+
+User details
+
+Unique User ID
+
+Services requested
+
+Services completed
+
+Emergency participation
+
+Ratings
+
+Leaderboard rank
+
+Revenue Generated
+
+Revenue Spent
+
+BACKEND REQUIREMENTS
+12. Authentication Logic
+
+Username + phone number validation
+
+No OTP, no password
+
+JWT-based session handling
+
+13. Context-Aware Reach Logic
+Level	Reach
+Locality	Same locality
+Town	Selected town
+District	Entire district
+State	Entire state
+14. Database (MongoDB)
+
+Collections:
+
+Users
+
+Geography hierarchy
+
+Services
+
+Notifications
+
+Emergencies
+
+Revenue logs
+
+Tourism data
+
+Analytics
+
+Indexes:
+
+Username
+
+Phone number
+
+Unique User ID
+
+Geography fields
+
+15. Technology Stack
+
+Frontend
+
+React.js
+
+HTML, CSS
+
+Web Speech API
+
+Backend
+
+Node.js
+
+Express.js
+
+MongoDB
+
+Firebase Cloud Messaging
+
+Socket.IO
+
+16. Final Implementation Expectations
+
+Attractive and elegant UI
+
+Strong color harmony
+
+Trust-driven design
+
+Real-world usability
+
+AI-website-builder ready
+
+Review & viva ready
+
+NOTIFICATION SYSTEM – LOGIC & TECHNICAL ARCHITECTURE
+1. Purpose of the Notification System
+
+The Notification System in Smart Hood is a core communication mechanism designed to ensure that users receive timely, reliable, and context-aware alerts related to:
+
+Service requests and offers
+
+Emergency situations
+
+User interest confirmations
+
+Work completion status
+
+Admin announcements
+
+Community and official communications
+
+The system is designed for a web-based platform, ensuring notifications can reach users on mobile devices and desktops without requiring a native mobile application.
+
+2. Notification Delivery Strategy (Multi-Channel Design)
+
+To meet both functional requirements and real-world feasibility, the notification system follows a multi-channel delivery approach.
+
+Notification Channels Used
+Channel	Purpose	Cost Model	Mandatory
+Web Push Notifications	Primary real-time alerts	Free	Yes
+SMS (Mobile Number)	Critical alerts & fallback	Limited / Paid	Conditional
+Email Notifications	Optional detailed alerts	Free (limited)	Optional
+
+This hybrid model ensures:
+
+High reliability
+
+Cost efficiency
+
+Scalability
+
+Compliance with real-world constraints
+
+3. Core Components of the Notification Architecture
+3.1 Frontend Notification Components
+a) Service Worker (Web Push Engine)
+
+Runs in the background of the browser
+
+Listens for incoming push messages
+
+Displays notifications even when the website is closed
+
+Required for mobile and desktop push notifications
+
+b) Notification Permission Manager
+
+Requests user permission during registration/login
+
+Stores consent status
+
+Handles enable/disable preferences
+
+c) Notification UI Module
+
+Notification page with:
+
+Provide Service
+
+Ask Service
+
+Sub-categories:
+
+Official
+
+Emergency
+
+Community
+
+Specific
+
+Displays notification history and status
+
+3.2 Backend Notification Engine
+
+The backend notification engine is responsible for decision-making, routing, and delivery.
+
+Core Responsibilities
+
+Identify eligible recipients
+
+Determine notification priority
+
+Select delivery channels
+
+Trigger delivery workflows
+
+Track notification status

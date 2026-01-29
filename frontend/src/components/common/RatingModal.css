@@ -1,0 +1,162 @@
+/* Rating Modal Styles */
+.rating-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.rating-modal {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 450px;
+    width: 100%;
+    position: relative;
+    text-align: center;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: all 0.3s ease;
+}
+
+.modal-close-btn:hover {
+    color: #1e293b;
+}
+
+.rating-header {
+    margin-bottom: 30px;
+}
+
+.rating-header h2 {
+    font-size: 1.6rem;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.rating-header p {
+    color: #64748b;
+    font-size: 1rem;
+}
+
+.rating-header strong {
+    color: #6366f1;
+}
+
+/* Star Rating */
+.star-rating-container {
+    margin-bottom: 25px;
+}
+
+.stars {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.star-btn {
+    background: none;
+    border: none;
+    font-size: 2.5rem;
+    cursor: pointer;
+    color: #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.star-btn.active {
+    color: #f59e0b;
+}
+
+.star-btn:hover {
+    color: #f59e0b;
+}
+
+.rating-label {
+    font-size: 1.1rem;
+    color: #6366f1;
+    font-weight: 600;
+}
+
+/* Comment Section */
+.comment-section {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.comment-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.comment-section textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    resize: none;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+}
+
+.comment-section textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+}
+
+/* Submit Button */
+.btn-submit-rating {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-submit-rating:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-submit-rating:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .rating-modal {
+        padding: 30px 20px;
+    }
+
+    .star-btn {
+        font-size: 2rem;
+    }
+}

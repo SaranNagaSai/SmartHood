@@ -1,0 +1,98 @@
+.complaints-container {
+    padding: 100px 5% 60px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.complaint-form-card {
+    padding: 40px;
+    margin-bottom: 50px;
+}
+
+.complaint-form-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+}
+
+.complaint-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.complaint-input,
+.complaint-textarea {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    color: var(--text-base);
+    font-size: 1rem;
+    outline: none;
+    width: 100%;
+}
+
+.complaint-textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.voice-input-wrapper {
+    display: flex;
+    gap: 12px;
+}
+
+.complaint-mic-btn {
+    background: var(--primary-glow);
+    color: var(--primary);
+    border: none;
+    border-radius: 12px;
+    padding: 0 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.complaint-mic-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.submissions-section h3 {
+    margin-bottom: 30px;
+    font-size: 1.5rem;
+}
+
+.complaint-card {
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.complaint-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.status-pills {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.status-resolved {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.status-pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}

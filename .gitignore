@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Production
+/build
+/dist
+
+# Environment Variables (CRITICAL - Never commit!)
+.env
+.env.*
+!.env.example
+server/.env
+frontend/.env
+
+# Firebase
+firebase-debug.log
+.firebase/
+**/serviceAccountKey.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs
+*.log
+
+# Misc
+.cache/
+.temp/
+.tmp/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Git
+.git/
