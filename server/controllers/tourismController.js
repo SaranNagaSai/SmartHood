@@ -228,11 +228,11 @@ exports.uploadPlaceImage = async (req, res) => {
 };
 
 module.exports = {
-    getPlaces,
-    getPlaceById,
-    createPlace,
-    addReview,
-    getNearbyPlaces,
-    getFeaturedPlaces,
-    uploadPlaceImage
+    getPlaces: exports.getPlaces,
+    getPlaceById: exports.getPlaceById,
+    createPlace: exports.createPlace,
+    addReview: exports.addReview,
+    getNearbyPlaces: exports.getNearbyPlaces,
+    getFeaturedPlaces: exports.getFeaturedPlaces,
+    uploadPlaceImage: exports.uploadPlaceImage
 };
