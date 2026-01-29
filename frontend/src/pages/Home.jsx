@@ -172,269 +172,291 @@ function Home() {
             🗺️ Browse by Location
           </button>
         )}
-        <button className="btn-secondary glass" onClick={() => navigate('/explore')}>
-          <FaMapMarkedAlt /> {t("hero_explore") || "Explore"}
-        </button>
       </div>
-    </motion.div>
-    </header >
 
-    {/* State Slideshow Section */ }
-  {
-    stateStats.length > 0 && (
-      <section className="state-slideshow-section">
-        <h2 className="section-title"><FaGlobe /> Users Across India</h2>
-        <div className="state-slideshow">
-          <button className="slide-nav prev" onClick={prevState}><FaChevronLeft /></button>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStateIndex}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="state-slide"
-            >
-              <div className="state-card glass">
-                <div className="state-icon">📍</div>
-                <h3>{stateStats[currentStateIndex]?.state || 'State'}</h3>
-                <div className="state-count">
-                  <FaUsers /> {stateStats[currentStateIndex]?.count || 0}
-                </div>
-                <p>Registered Users</p>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-          <button className="slide-nav next" onClick={nextState}><FaChevronRight /></button>
-
-          {/* Dots indicator */}
-          <div className="slide-dots">
-            {stateStats.slice(0, 7).map((_, idx) => (
-              <span
-                key={idx}
-                className={`dot ${idx === currentStateIndex % 7 ? 'active' : ''}`}
-                onClick={() => setCurrentStateIndex(idx)}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  {/* Profession Cards Section */ }
-  <section className="profession-section">
-    <h2 className="section-title"><FaBriefcase /> People in {user?.locality}</h2>
-    <div className="profession-grid">
-      {professionStats.map((stat, idx) => (
+      {/* Hero Section */}
+      <header className="home-hero">
         <motion.div
-          key={idx}
-          whileHover={{ scale: 1.05, y: -5 }}
-          whileTap={{ scale: 0.95 }}
-          className="profession-card"
-          onClick={() => handleProfessionClick(stat.profession)}
+          className="hero-content"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          <div className="profession-icon">
-            {professionIcons[stat.profession] || "👤"}
+          <div className="location-badge glass">
+            <FaMapMarkerAlt /> {user?.locality}, {user?.city}, {user?.state}
           </div>
-          <h4>{stat.profession}</h4>
-          <div className="profession-count">
-            <FaUsers /> {stat.count}
+          <h1 className="hero-title">
+            Welcome to <span className="gradient-text">Smart Hood</span>
+          </h1>
+          <p className="hero-subtitle">{t("hero_description") || "Connect with your community"}</p>
+
+          <div className="hero-actions">
+            <button className="btn-premium" onClick={() => navigate('/emergency')}>
+              <FaExclamationCircle /> {t("nav_emergencies")}
+            </button>
+            <button className="btn-secondary glass" onClick={() => navigate('/explore')}>
+              <FaMapMarkedAlt /> {t("hero_explore") || "Explore"}
+            </button>
           </div>
         </motion.div>
-      ))}
-    </div>
-  </section>
+      </header>
 
-  {/* Emergency Alerts Section */ }
-  {
-    emergencies.length > 0 && (
-      <section className="emergency-alerts-section">
-        <h2 className="section-title alert-title">
-          <FaExclamationCircle className="pulse" /> {t("home_active_emergencies")}
-        </h2>
-        <div className="emergency-alerts-list">
-          {emergencies.slice(0, 3).map(em => (
-            <motion.div
-              key={em._id}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              className={`emergency-alert-card priority-${em.priority}`}
-            >
-              <div className="alert-badge">{em.priority}</div>
-              <h4>{em.type}</h4>
-              <p>{em.description}</p>
-              <div className="alert-meta">
-                <span><FaPhoneAlt /> {em.contactNumber}</span>
-                <span><FaMapMarkerAlt /> {em.locality}</span>
-              </div>
-              <button className="btn-help" onClick={() => navigate('/emergency')}>
-                {t("i_can_help")}
-              </button>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  {/* Main Features Grid */ }
-  <main className="features-container">
-    <h2 className="section-title">{t("home_community_hub") || "Community Hub"}</h2>
-    <div className="features-grid">
-      <motion.div
-        whileHover={{ y: -10 }}
-        className="feature-card glass high-priority"
-        onClick={() => setShowModal('emergency')}
-      >
-        <div className="card-icon"><FaBullhorn /></div>
-        <h3>{t("home_report_emergency")}</h3>
-        <p>{t("home_emergency_desc")}</p>
-      </motion.div>
-
-      <motion.div
-        whileHover={{ y: -10 }}
-        className="feature-card glass"
-        onClick={() => setShowModal('service')}
-      >
-        <div className="card-icon"><FaHandHoldingHeart /></div>
-        <h3>{t("home_need_help")}</h3>
-        <p>{t("home_help_desc")}</p>
-      </motion.div>
-
-      <motion.div
-        whileHover={{ y: -10 }}
-        className="feature-card glass"
-        onClick={() => navigate('/events')}
-      >
-        <div className="card-icon"><FaCalendarAlt /></div>
-        <h3>{t("events_title") || "Events"}</h3>
-        <p>{t("home_events_desc")}</p>
-      </motion.div>
-
-      <motion.div
-        whileHover={{ y: -10 }}
-        className="feature-card glass"
-        onClick={() => navigate('/tourism')}
-      >
-        <div className="card-icon"><FaShoppingBasket /></div>
-        <h3>{t("home_local_markets")}</h3>
-        <p>{t("home_rates_desc")}</p>
-      </motion.div>
-    </div>
-  </main>
-
-  {/* Services Feed */ }
-  {
-    services.length > 0 && (
-      <section className="services-feed-section">
-        <h2 className="section-title">{t("home_feed") || "Community Feed"}</h2>
-        <div className="services-feed">
-          {services.slice(0, 4).map(service => (
-            <motion.div
-              key={service._id}
-              whileHover={{ y: -5 }}
-              className="service-feed-card glass"
-            >
-              <div className={`service-type-badge ${service.type === 'Request' ? 'request' : 'offer'}`}>
-                {service.type}
-              </div>
-              <h4>{service.category}</h4>
-              <p>{service.description}</p>
-              <div className="service-meta">
-                <span><FaUser /> {service.requesterId?.name || "Community Member"}</span>
-                <span><FaMapMarkerAlt /> {service.locality}</span>
-              </div>
-              <button className="btn-respond">{t("home_help_now") || "Respond"}</button>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  {/* Community Stats */ }
-  <section className="community-stats glass">
-    <div className="stat-item">
-      <span className="stat-val">{user?.impactScore || 0}</span>
-      <span className="stat-label">Impact Score</span>
-    </div>
-    <div className="stat-item">
-      <span className="stat-val">{emergencies.length}</span>
-      <span className="stat-label">Active Emergencies</span>
-    </div>
-    <div className="stat-item">
-      <span className="stat-val">{services.length}</span>
-      <span className="stat-label">Active Requests</span>
-    </div>
-  </section>
-
-  {/* Form Modals */ }
-  <AnimatePresence>
-    {showModal && (
-      <div className="modal-overlay" onClick={() => setShowModal(null)}>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="modal-container glass"
-          onClick={e => e.stopPropagation()}
-        >
-          <button className="modal-close" onClick={() => setShowModal(null)}><FaTimes /></button>
-          {showModal === 'service' ? (
-            <ServiceForm onSuccess={() => { setShowModal(null); fetchData(); }} />
-          ) : (
-            <EmergencyForm onSuccess={() => { setShowModal(null); fetchData(); }} />
-          )}
-        </motion.div>
-      </div>
-    )}
-  </AnimatePresence>
-
-  {/* People List Modal */ }
-  <AnimatePresence>
-    {selectedProfession && (
-      <div className="modal-overlay" onClick={closePeopleModal}>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="modal-container people-modal glass"
-          onClick={e => e.stopPropagation()}
-        >
-          <button className="modal-close" onClick={closePeopleModal}><FaTimes /></button>
-          <h2 className="modal-title">
-            {professionIcons[selectedProfession]} {selectedProfession} in {user?.locality}
-          </h2>
-
-          {loadingPeople ? (
-            <div className="loader-center">
-              <div className="premium-spinner"></div>
-            </div>
-          ) : professionPeople.length > 0 ? (
-            <div className="people-list">
-              {professionPeople.map(person => (
-                <div key={person._id} className="person-card">
-                  <div className="person-avatar">{person.name?.[0]}</div>
-                  <div className="person-info">
-                    <h4>{person.name}</h4>
-                    <p>{person.profession}</p>
-                    <div className="person-meta">
-                      <span><FaPhoneAlt /> {person.phone}</span>
-                      {person.ratings?.average > 0 && (
-                        <span className="rating"><FaStar /> {person.ratings.average.toFixed(1)}</span>
-                      )}
+      {/* State Slideshow Section */}
+      {
+        stateStats.length > 0 && (
+          <section className="state-slideshow-section">
+            <h2 className="section-title"><FaGlobe /> Users Across India</h2>
+            <div className="state-slideshow">
+              <button className="slide-nav prev" onClick={prevState}><FaChevronLeft /></button>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStateIndex}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  className="state-slide"
+                >
+                  <div className="state-card glass">
+                    <div className="state-icon">📍</div>
+                    <h3>{stateStats[currentStateIndex]?.state || 'State'}</h3>
+                    <div className="state-count">
+                      <FaUsers /> {stateStats[currentStateIndex]?.count || 0}
                     </div>
+                    <p>Registered Users</p>
                   </div>
-                </div>
+                </motion.div>
+              </AnimatePresence>
+              <button className="slide-nav next" onClick={nextState}><FaChevronRight /></button>
+
+              {/* Dots indicator */}
+              <div className="slide-dots">
+                {stateStats.slice(0, 7).map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`dot ${idx === currentStateIndex % 7 ? 'active' : ''}`}
+                    onClick={() => setCurrentStateIndex(idx)}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        )
+      }
+
+      {/* Profession Cards Section */}
+      <section className="profession-section">
+        <h2 className="section-title"><FaBriefcase /> People in {user?.locality}</h2>
+        <div className="profession-grid">
+          {professionStats.map((stat, idx) => (
+            <motion.div
+              key={idx}
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+              className="profession-card"
+              onClick={() => handleProfessionClick(stat.profession)}
+            >
+              <div className="profession-icon">
+                {professionIcons[stat.profession] || "👤"}
+              </div>
+              <h4>{stat.profession}</h4>
+              <div className="profession-count">
+                <FaUsers /> {stat.count}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Emergency Alerts Section */}
+      {
+        emergencies.length > 0 && (
+          <section className="emergency-alerts-section">
+            <h2 className="section-title alert-title">
+              <FaExclamationCircle className="pulse" /> {t("home_active_emergencies")}
+            </h2>
+            <div className="emergency-alerts-list">
+              {emergencies.slice(0, 3).map(em => (
+                <motion.div
+                  key={em._id}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  className={`emergency-alert-card priority-${em.priority}`}
+                >
+                  <div className="alert-badge">{em.priority}</div>
+                  <h4>{em.type}</h4>
+                  <p>{em.description}</p>
+                  <div className="alert-meta">
+                    <span><FaPhoneAlt /> {em.contactNumber}</span>
+                    <span><FaMapMarkerAlt /> {em.locality}</span>
+                  </div>
+                  <button className="btn-help" onClick={() => navigate('/emergency')}>
+                    {t("i_can_help")}
+                  </button>
+                </motion.div>
               ))}
             </div>
-          ) : (
-            <p className="empty-state">No people found in this category.</p>
-          )}
-        </motion.div>
-      </div>
-    )}
-  </AnimatePresence>
+          </section>
+        )
+      }
+
+      {/* Main Features Grid */}
+      <main className="features-container">
+        <h2 className="section-title">{t("home_community_hub") || "Community Hub"}</h2>
+        <div className="features-grid">
+          <motion.div
+            whileHover={{ y: -10 }}
+            className="feature-card glass high-priority"
+            onClick={() => setShowModal('emergency')}
+          >
+            <div className="card-icon"><FaBullhorn /></div>
+            <h3>{t("home_report_emergency")}</h3>
+            <p>{t("home_emergency_desc")}</p>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ y: -10 }}
+            className="feature-card glass"
+            onClick={() => setShowModal('service')}
+          >
+            <div className="card-icon"><FaHandHoldingHeart /></div>
+            <h3>{t("home_need_help")}</h3>
+            <p>{t("home_help_desc")}</p>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ y: -10 }}
+            className="feature-card glass"
+            onClick={() => navigate('/events')}
+          >
+            <div className="card-icon"><FaCalendarAlt /></div>
+            <h3>{t("events_title") || "Events"}</h3>
+            <p>{t("home_events_desc")}</p>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ y: -10 }}
+            className="feature-card glass"
+            onClick={() => navigate('/tourism')}
+          >
+            <div className="card-icon"><FaShoppingBasket /></div>
+            <h3>{t("home_local_markets")}</h3>
+            <p>{t("home_rates_desc")}</p>
+          </motion.div>
+        </div>
+      </main>
+
+      {/* Services Feed */}
+      {
+        services.length > 0 && (
+          <section className="services-feed-section">
+            <h2 className="section-title">{t("home_feed") || "Community Feed"}</h2>
+            <div className="services-feed">
+              {services.slice(0, 4).map(service => (
+                <motion.div
+                  key={service._id}
+                  whileHover={{ y: -5 }}
+                  className="service-feed-card glass"
+                >
+                  <div className={`service-type-badge ${service.type === 'Request' ? 'request' : 'offer'}`}>
+                    {service.type}
+                  </div>
+                  <h4>{service.category}</h4>
+                  <p>{service.description}</p>
+                  <div className="service-meta">
+                    <span><FaUser /> {service.requesterId?.name || "Community Member"}</span>
+                    <span><FaMapMarkerAlt /> {service.locality}</span>
+                  </div>
+                  <button className="btn-respond">{t("home_help_now") || "Respond"}</button>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      {/* Community Stats */}
+      <section className="community-stats glass">
+        <div className="stat-item">
+          <span className="stat-val">{user?.impactScore || 0}</span>
+          <span className="stat-label">Impact Score</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-val">{emergencies.length}</span>
+          <span className="stat-label">Active Emergencies</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-val">{services.length}</span>
+          <span className="stat-label">Active Requests</span>
+        </div>
+      </section>
+
+      {/* Form Modals */}
+      <AnimatePresence>
+        {showModal && (
+          <div className="modal-overlay" onClick={() => setShowModal(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="modal-container glass"
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="modal-close" onClick={() => setShowModal(null)}><FaTimes /></button>
+              {showModal === 'service' ? (
+                <ServiceForm onSuccess={() => { setShowModal(null); fetchData(); }} />
+              ) : (
+                <EmergencyForm onSuccess={() => { setShowModal(null); fetchData(); }} />
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* People List Modal */}
+      <AnimatePresence>
+        {selectedProfession && (
+          <div className="modal-overlay" onClick={closePeopleModal}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="modal-container people-modal glass"
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="modal-close" onClick={closePeopleModal}><FaTimes /></button>
+              <h2 className="modal-title">
+                {professionIcons[selectedProfession]} {selectedProfession} in {user?.locality}
+              </h2>
+
+              {loadingPeople ? (
+                <div className="loader-center">
+                  <div className="premium-spinner"></div>
+                </div>
+              ) : professionPeople.length > 0 ? (
+                <div className="people-list">
+                  {professionPeople.map(person => (
+                    <div key={person._id} className="person-card">
+                      <div className="person-avatar">{person.name?.[0]}</div>
+                      <div className="person-info">
+                        <h4>{person.name}</h4>
+                        <p>{person.profession}</p>
+                        <div className="person-meta">
+                          <span><FaPhoneAlt /> {person.phone}</span>
+                          {person.ratings?.average > 0 && (
+                            <span className="rating"><FaStar /> {person.ratings.average.toFixed(1)}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-state">No people found in this category.</p>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div >
   );
 }
