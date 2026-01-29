@@ -7,7 +7,7 @@ const logger = require("./utils/logger");
 const authRoutes = require("./routes/authRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-const eventRoutes = require("./routes/eventRoutes");
+// const eventRoutes = require("./routes/eventRoutes"); // TODO: Create this file
 const emergencyRoutes = require("./routes/emergencyRoutes");
 const locationRoutes = require("./routes/locationRoutes");
 const tourismRoutes = require("./routes/tourismRoutes");
@@ -18,6 +18,7 @@ const PORT = process.env.PORT || 5000;
 app.use("/api/auth", authRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/notifications", notificationRoutes);
+// app.use("/api/events", eventRoutes); // TODO: Enable when eventRoutes is created
 app.use("/api/events", eventRoutes);
 app.use("/api/emergency", emergencyRoutes);
 app.use("/api/locations", locationRoutes);
