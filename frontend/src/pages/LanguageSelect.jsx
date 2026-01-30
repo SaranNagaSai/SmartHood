@@ -2,7 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { FaLanguage, FaGlobe } from 'react-icons/fa';
-import './LanguageSelect.css';
+import Button from "../components/ui/Button";
+
+const MotionButton = motion.create(Button);
 
 const LanguageSelect = () => {
     const { i18n } = useTranslation();
@@ -29,7 +31,8 @@ const LanguageSelect = () => {
                 <p className="subtitle">Choose your language / మీ ప్రాధాన్యత భాషను ఎంచుకోండి</p>
 
                 <div className="language-options">
-                    <motion.button
+                    <MotionButton
+                        unstyled
                         whileHover={{ y: -5 }}
                         whileTap={{ scale: 0.95 }}
                         className="lang-btn telugu"
@@ -37,9 +40,10 @@ const LanguageSelect = () => {
                     >
                         <span className="lang-name">తెలుగు</span>
                         <span className="lang-sub">Telugu</span>
-                    </motion.button>
+                    </MotionButton>
 
-                    <motion.button
+                    <MotionButton
+                        unstyled
                         whileHover={{ y: -5 }}
                         whileTap={{ scale: 0.95 }}
                         className="lang-btn english"
@@ -47,7 +51,7 @@ const LanguageSelect = () => {
                     >
                         <span className="lang-name">English</span>
                         <span className="lang-sub">International</span>
-                    </motion.button>
+                    </MotionButton>
                 </div>
 
                 <div className="footer-info">

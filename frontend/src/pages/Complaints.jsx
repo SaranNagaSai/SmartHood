@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import Navbar from "../components/common/Navbar";
+import PageHeader from "../components/layout/PageHeader";
 import useSpeechInput from "../hooks/useSpeechToText";
 import API from "../services/api";
 import { FaMicrophone, FaClipboardList, FaCheckCircle, FaHourglassHalf } from "react-icons/fa";
-import "./Complaints.css";
+import Button from "../components/ui/Button";
+import TextField from "../components/ui/TextField";
+import TextAreaField from "../components/ui/TextAreaField";
+import useToast from "../hooks/useToast";
 
 export default function Complaints() {
     const { t } = useTranslation();
+    const { addToast } = useToast();
     const [data, setData] = useState({ title: "", description: "" });
     const [complaints, setComplaints] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -33,20 +37,19 @@ export default function Complaints() {
         try {
             setLoading(true);
             await API.post("/complaints", data);
-            alert(t("complaint_success"));
+            addToast(t("complaint_success", { defaultValue: "Complaint submitted" }), { type: "success" });
             setData({ title: "", description: "" });
             fetchComplaints();
         } catch (error) {
-            alert(t("complaint_error"));
+            addToast(t("complaint_error", { defaultValue: "Failed to submit complaint" }), { type: "error" });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="complaints-layout">
-            <Navbar />
-            <div className="complaints-container">
+        <>
+            <PageHeader title={t("nav_activity")} />
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -54,26 +57,34 @@ export default function Complaints() {
                 >
                     <h2 className="gradient-text"><FaClipboardList /> {t("nav_activity")}</h2>
                     <form onSubmit={handleSubmit} className="complaint-form">
-                        <input
-                            className="complaint-input"
+                        <TextField
                             placeholder={t("subject_placeholder")}
                             value={data.title}
                             onChange={e => setData({ ...data, title: e.target.value })}
                             required
                         />
                         <div className="voice-input-wrapper">
-                            <textarea
-                                className="complaint-textarea"
+                            <TextAreaField
                                 placeholder={t("detailed_description")}
                                 value={data.description}
                                 onChange={e => setData({ ...data, description: e.target.value })}
                                 required
+                                rows={4}
                             />
-                            <button type="button" onClick={speakDesc} className="complaint-mic-btn"><FaMicrophone /></button>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="btn-icon"
+                                onClick={speakDesc}
+                                aria-label={t("voice_input") || "Voice input"}
+                            >
+                                <FaMicrophone />
+                            </Button>
                         </div>
-                        <button type="submit" disabled={loading} className="btn-premium">
+                        <Button type="submit" loading={loading} block>
                             {loading ? t("submitting") : t("submit_complaint")}
-                        </button>
+                        </Button>
                     </form>
                 </motion.div>
 
@@ -104,7 +115,6 @@ export default function Complaints() {
                         )}
                     </div>
                 </div>
-            </div>
-        </div>
+        </>
     );
 }

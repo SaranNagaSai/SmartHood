@@ -5,14 +5,14 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/common/Navbar';
+import PageHeader from '../components/layout/PageHeader';
 import { AuthContext } from '../context/AuthContext';
 import API from '../services/api';
+import Button from "../components/ui/Button";
 import {
     FaGraduationCap, FaTrophy, FaHandsHelping, FaBriefcase,
     FaBookReader, FaMedal, FaStar, FaChevronRight
 } from 'react-icons/fa';
-import './StudentDashboard.css';
 
 export default function StudentDashboard() {
     const { t } = useTranslation();
@@ -20,20 +20,30 @@ export default function StudentDashboard() {
     const { user } = useContext(AuthContext);
     const [activeTab, setActiveTab] = useState('overview');
     const [leaderboard, setLeaderboard] = useState([]);
+    const [opportunities, setOpportunities] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchStudentData = async () => {
             try {
-                // Mock student data for demo
-                const mockLeaderboard = [
-                    { _id: '1', name: 'Priya Sharma', impactScore: 450, rank: 1, avatar: 'P' },
-                    { _id: '2', name: 'Rahul Kumar', impactScore: 380, rank: 2, avatar: 'R' },
-                    { _id: '3', name: 'Sneha Reddy', impactScore: 320, rank: 3, avatar: 'S' },
-                    { _id: '4', name: user?.name || 'You', impactScore: user?.impactScore || 280, rank: 4, avatar: user?.name?.[0] || 'Y', isYou: true },
-                    { _id: '5', name: 'Karthik Nair', impactScore: 250, rank: 5, avatar: 'K' }
-                ];
-                setLeaderboard(mockLeaderboard);
+                // Fetch real data
+                const [leaderboardRes, oppRes] = await Promise.all([
+                    API.get('/students/leaderboard'),
+                    API.get('/students/opportunities')
+                ]);
+
+                // Process Leaderboard: Mark "Me"
+                const lbData = leaderboardRes.data.map((s, idx) => ({
+                    ...s,
+                    rank: idx + 1,
+                    avatar: s.name.charAt(0),
+                    isYou: s._id === user?._id
+                }));
+                setLeaderboard(lbData);
+
+                // Process Opportunities
+                setOpportunities(oppRes.data);
+
             } catch (error) {
                 console.error("Error fetching student data", error);
             } finally {
@@ -44,58 +54,31 @@ export default function StudentDashboard() {
     }, [user]);
 
     const studentStats = [
-        { label: 'Impact Score', value: user?.impactScore || 280, icon: FaStar, color: '#f59e0b' },
-        { label: 'Help Sessions', value: 12, icon: FaHandsHelping, color: '#10b981' },
-        { label: 'Skills Shared', value: 5, icon: FaBookReader, color: '#6366f1' },
-        { label: 'Leaderboard Rank', value: '#4', icon: FaTrophy, color: '#8b5cf6' }
-    ];
-
-    const opportunities = [
+        { label: 'Impact Score', value: user?.impactScore || 0, icon: FaStar, color: 'var(--color-warning-500)' },
+        { label: 'Help Sessions', value: 0, icon: FaHandsHelping, color: 'var(--color-success-600)' }, // Future: Real data
+        { label: 'Skills Shared', value: 0, icon: FaBookReader, color: 'var(--color-primary-500)' },    // Future: Real data
         {
-            _id: '1',
-            title: 'Content Writing Internship',
-            company: 'Local News Portal',
-            type: 'Internship',
-            location: user?.locality || 'Local',
-            duration: '3 months'
-        },
-        {
-            _id: '2',
-            title: 'Tutoring Students (Math)',
-            company: 'Community Center',
-            type: 'Volunteering',
-            location: 'Online / Offline',
-            duration: 'Flexible'
-        },
-        {
-            _id: '3',
-            title: 'Tech Support Helper',
-            company: 'Senior Citizen Club',
-            type: 'Skill Sharing',
-            location: user?.locality || 'Local',
-            duration: 'Weekends'
+            label: 'Leaderboard Rank',
+            value: leaderboard.find(s => s.isYou)?.rank ? `#${leaderboard.find(s => s.isYou).rank}` : 'N/A',
+            icon: FaTrophy,
+            color: 'var(--color-primary-700)'
         }
     ];
 
     if (loading) {
         return (
-            <div className="student-layout">
-                <Navbar />
-                <div className="loader-container">
-                    <div className="premium-spinner"></div>
-                </div>
+            <div className="loader-container">
+                <div className="premium-spinner"></div>
             </div>
         );
     }
 
     return (
-        <div className="student-layout">
-            <Navbar />
-            <div className="student-container">
-                {/* Header */}
+        <>
+            <PageHeader>
                 <header className="student-header">
                     <div className="header-left">
-                        <FaGraduationCap size={40} color="#6366f1" />
+                        <FaGraduationCap size={40} color="var(--color-primary-500)" />
                         <div>
                             <h1>Student Dashboard</h1>
                             <p>{t("student_subtitle") || "Track your community impact and find opportunities"}</p>
@@ -109,6 +92,7 @@ export default function StudentDashboard() {
                         </div>
                     )}
                 </header>
+            </PageHeader>
 
                 {/* Stats Grid */}
                 <section className="stats-grid">
@@ -132,13 +116,15 @@ export default function StudentDashboard() {
                 {/* Tabs */}
                 <div className="student-tabs">
                     {['overview', 'leaderboard', 'opportunities', 'skills'].map(tab => (
-                        <button
+                        <Button
                             key={tab}
+                            unstyled
+                            type="button"
                             className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                             onClick={() => setActiveTab(tab)}
                         >
                             {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                        </button>
+                        </Button>
                     ))}
                 </div>
 
@@ -148,28 +134,28 @@ export default function StudentDashboard() {
                         <div className="overview-grid">
                             {/* Quick Actions */}
                             <motion.div whileHover={{ y: -5 }} className="action-card glass" onClick={() => setActiveTab('leaderboard')}>
-                                <FaTrophy size={30} color="#f59e0b" />
+                                <FaTrophy size={30} color="var(--color-warning-500)" />
                                 <h3>Student Leaderboard</h3>
                                 <p>See how you rank among other student helpers</p>
                                 <FaChevronRight className="arrow" />
                             </motion.div>
 
                             <motion.div whileHover={{ y: -5 }} className="action-card glass" onClick={() => navigate('/activity')}>
-                                <FaHandsHelping size={30} color="#10b981" />
+                                <FaHandsHelping size={30} color="var(--color-success-600)" />
                                 <h3>Request Academic Help</h3>
                                 <p>Get help from fellow students in your area</p>
                                 <FaChevronRight className="arrow" />
                             </motion.div>
 
                             <motion.div whileHover={{ y: -5 }} className="action-card glass" onClick={() => setActiveTab('opportunities')}>
-                                <FaBriefcase size={30} color="#6366f1" />
+                                <FaBriefcase size={30} color="var(--color-primary-500)" />
                                 <h3>Find Opportunities</h3>
                                 <p>Internships, volunteering, and skill sharing</p>
                                 <FaChevronRight className="arrow" />
                             </motion.div>
 
                             <motion.div whileHover={{ y: -5 }} className="action-card glass" onClick={() => setActiveTab('skills')}>
-                                <FaBookReader size={30} color="#8b5cf6" />
+                                <FaBookReader size={30} color="var(--color-primary-700)" />
                                 <h3>Share Your Skills</h3>
                                 <p>Teach what you know, help your community</p>
                                 <FaChevronRight className="arrow" />
@@ -179,7 +165,7 @@ export default function StudentDashboard() {
 
                     {activeTab === 'leaderboard' && (
                         <div className="leaderboard-section">
-                            <h2><FaTrophy color="#f59e0b" /> Student Champions</h2>
+                            <h2><FaTrophy color="var(--color-warning-500)" /> Student Champions</h2>
                             <div className="leaderboard-list">
                                 {leaderboard.map((student, idx) => (
                                     <motion.div
@@ -190,7 +176,11 @@ export default function StudentDashboard() {
                                         className={`leaderboard-item glass ${student.isYou ? 'is-you' : ''}`}
                                     >
                                         <div className="rank-badge">
-                                            {student.rank <= 3 ? <FaMedal color={student.rank === 1 ? '#f59e0b' : student.rank === 2 ? '#94a3b8' : '#cd7f32'} /> : `#${student.rank}`}
+                                            {student.rank <= 3 ? (
+                                                <FaMedal
+                                                    color={student.rank === 1 ? 'var(--color-warning-500)' : student.rank === 2 ? 'var(--color-neutral-400)' : 'var(--color-warning-600)'}
+                                                />
+                                            ) : `#${student.rank}`}
                                         </div>
                                         <div className="student-avatar">{student.avatar}</div>
                                         <div className="student-info">
@@ -205,7 +195,7 @@ export default function StudentDashboard() {
 
                     {activeTab === 'opportunities' && (
                         <div className="opportunities-section">
-                            <h2><FaBriefcase color="#6366f1" /> Available Opportunities</h2>
+                            <h2><FaBriefcase color="var(--color-primary-500)" /> Available Opportunities</h2>
                             <div className="opportunities-list">
                                 {opportunities.map(opp => (
                                     <motion.div
@@ -217,12 +207,12 @@ export default function StudentDashboard() {
                                             {opp.type}
                                         </div>
                                         <h3>{opp.title}</h3>
-                                        <p className="company">{opp.company}</p>
+                                        <p className="company">{opp.organization}</p>
                                         <div className="opp-meta">
                                             <span>📍 {opp.location}</span>
                                             <span>⏱️ {opp.duration}</span>
                                         </div>
-                                        <button className="btn-apply">Apply Now</button>
+                                        <Button unstyled type="button" className="btn-apply">Apply Now</Button>
                                     </motion.div>
                                 ))}
                             </div>
@@ -231,7 +221,7 @@ export default function StudentDashboard() {
 
                     {activeTab === 'skills' && (
                         <div className="skills-section">
-                            <h2><FaBookReader color="#8b5cf6" /> Share Your Skills</h2>
+                            <h2><FaBookReader color="var(--color-primary-700)" /> Share Your Skills</h2>
                             <p className="section-desc">Help community members with your expertise and earn impact points!</p>
                             <div className="skill-categories">
                                 {['Mathematics', 'Computer Skills', 'Language Tutoring', 'Science', 'Arts & Crafts', 'Music', 'Sports', 'Others'].map(skill => (
@@ -244,13 +234,12 @@ export default function StudentDashboard() {
                                     </motion.div>
                                 ))}
                             </div>
-                            <button className="btn-premium" style={{ marginTop: '30px' }}>
+                            <Button style={{ marginTop: '30px' }}>
                                 + Register as Skill Volunteer
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </div>
-            </div>
-        </div>
+        </>
     );
 }

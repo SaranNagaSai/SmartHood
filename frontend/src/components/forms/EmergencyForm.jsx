@@ -3,10 +3,18 @@ import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import useSpeechInput from "../../hooks/useSpeechToText";
 import API from "../../services/api";
+import { useNavigate } from "react-router-dom";
 import { FaMicrophone, FaExclamationCircle } from "react-icons/fa";
+import Button from "../ui/Button";
+import SelectField from "../ui/SelectField";
+import TextAreaField from "../ui/TextAreaField";
+import TextField from "../ui/TextField";
+import useToast from "../../hooks/useToast";
 
 export default function EmergencyForm({ onSuccess }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { addToast } = useToast();
   const [data, setData] = useState({
     type: "",
     description: "",
@@ -28,10 +36,17 @@ export default function EmergencyForm({ onSuccess }) {
     try {
       setLoading(true);
       await API.post("/emergencies", data);
-      alert("Emergency alert sent successfully!");
+      addToast("Emergency alert sent successfully!", { type: "success" });
       if (onSuccess) onSuccess();
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to send alert");
+      const code = error.response?.data?.error?.code;
+      if (code === "PROFILE_INCOMPLETE") {
+        addToast("Profile incomplete. Please complete your location details in Profile.", { type: "error" });
+        navigate("/profile");
+        return;
+      }
+
+      addToast(error.response?.data?.message || "Failed to send alert", { type: "error" });
     } finally {
       setLoading(false);
       setShowPreview(false);
@@ -43,7 +58,8 @@ export default function EmergencyForm({ onSuccess }) {
       <h3 style={styles.title}><FaExclamationCircle /> {t("form_report_emergency")}</h3>
 
       <form onSubmit={handleSubmit} style={styles.form}>
-        <select
+        <SelectField
+          selectClassName=""
           style={styles.input}
           value={data.type}
           onChange={(e) => set("type")(e.target.value)}
@@ -57,19 +73,20 @@ export default function EmergencyForm({ onSuccess }) {
           <option>Missing Person</option>
           <option>Natural Disaster</option>
           <option>Custom</option>
-        </select>
+        </SelectField>
 
         <div style={styles.voiceRow}>
-          <textarea
+          <TextAreaField
+            textareaClassName=""
             style={styles.textarea}
             placeholder={t("form_desc_placeholder")}
             value={data.description}
             onChange={(e) => set("description")(e.target.value)}
             required
           />
-          <button type="button" onClick={speakDesc} style={styles.micBtn}>
+          <Button type="button" variant="ghost" onClick={speakDesc} style={styles.micBtn} aria-label="Voice input">
             <FaMicrophone />
-          </button>
+          </Button>
         </div>
 
         <div style={styles.priorityRow}>
@@ -87,7 +104,8 @@ export default function EmergencyForm({ onSuccess }) {
           ))}
         </div>
 
-        <input
+        <TextField
+          inputClassName=""
           style={styles.input}
           placeholder={t("form_contact_placeholder")}
           value={data.contactNumber}
@@ -106,16 +124,20 @@ export default function EmergencyForm({ onSuccess }) {
               <p><strong>{t("form_voice_preview")}</strong> {data.description}</p>
               <small>You can edit the text above if it's incorrect.</small>
               <div style={styles.previewActions}>
-                <button type="button" onClick={() => setShowPreview(false)} style={styles.editBtn}>{t("form_keep_editing")}</button>
-                <button type="button" onClick={handleSubmit} style={styles.confirmBtn}>{t("form_confirm_send")}</button>
+                <Button type="button" variant="ghost" onClick={() => setShowPreview(false)} style={styles.editBtn}>
+                  {t("form_keep_editing")}
+                </Button>
+                <Button type="button" variant="ghost" onClick={handleSubmit} style={styles.confirmBtn}>
+                  {t("form_confirm_send")}
+                </Button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <button type="submit" disabled={loading} style={styles.submitBtn}>
-          {loading ? t("form_sending") : t("form_send_alert")}
-        </button>
+        <Button type="submit" variant="ghost" disabled={loading} loading={loading} style={styles.submitBtn}>
+          {t("form_send_alert")}
+        </Button>
       </form>
     </div>
   );
@@ -123,7 +145,7 @@ export default function EmergencyForm({ onSuccess }) {
 
 const styles = {
   card: {
-    background: "#fff",
+    background: "var(--surface-primary)",
     padding: "24px",
     borderRadius: "16px",
     boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
@@ -132,7 +154,7 @@ const styles = {
   },
   title: {
     margin: "0 0 20px 0",
-    color: "#ef4444",
+    color: "var(--color-error-600)",
     display: "flex",
     alignItems: "center",
     gap: "10px"
@@ -145,7 +167,7 @@ const styles = {
   input: {
     padding: "12px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
+    border: "1px solid var(--border-primary)",
     fontSize: "1rem"
   },
   voiceRow: {
@@ -157,14 +179,14 @@ const styles = {
     flex: 1,
     padding: "12px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
+    border: "1px solid var(--border-primary)",
     minHeight: "100px",
     fontSize: "1rem",
     resize: "none"
   },
   micBtn: {
-    background: "#ef4444",
-    color: "#fff",
+    background: "var(--color-error-500)",
+    color: "var(--text-inverse)",
     border: "none",
     padding: "12px",
     borderRadius: "8px",
@@ -186,10 +208,10 @@ const styles = {
     cursor: "pointer"
   },
   previewBox: {
-    background: "#fdf2f2",
+    background: "var(--color-error-50)",
     padding: "15px",
     borderRadius: "8px",
-    border: "1px dashed #ef4444"
+    border: "1px dashed var(--color-error-500)"
   },
   previewActions: {
     display: "flex",
@@ -198,23 +220,23 @@ const styles = {
   },
   editBtn: {
     padding: "6px 12px",
-    background: "#e5e7eb",
+    background: "var(--color-neutral-200)",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer"
   },
   confirmBtn: {
     padding: "6px 12px",
-    background: "#ef4444",
-    color: "#fff",
+    background: "var(--color-error-500)",
+    color: "var(--text-inverse)",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer"
   },
   submitBtn: {
     padding: "14px",
-    background: "#ef4444",
-    color: "#fff",
+    background: "var(--color-error-500)",
+    color: "var(--text-inverse)",
     border: "none",
     borderRadius: "10px",
     fontWeight: "bold",

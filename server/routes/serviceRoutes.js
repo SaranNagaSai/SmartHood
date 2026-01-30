@@ -11,10 +11,12 @@ const {
     markComplete
 } = require("../controllers/serviceController");
 const { protect } = require("../middleware/authMiddleware");
+const { serviceCreateLimiter } = require("../middleware/rateLimiters");
+const { requireProfileCompleteForLocation } = require("../middleware/profileMiddleware");
 
 // Base routes
 router.route("/")
-    .post(protect, createService)
+    .post(protect, serviceCreateLimiter, requireProfileCompleteForLocation, createService)
     .get(protect, getServices);
 
 // Single service routes

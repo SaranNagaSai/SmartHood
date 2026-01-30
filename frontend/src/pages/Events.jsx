@@ -4,26 +4,30 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import Navbar from "../components/common/Navbar";
+import PageHeader from "../components/layout/PageHeader";
 import { AuthContext } from "../context/AuthContext";
-import API from "../services/api";
+import useToast from "../hooks/useToast";
+import Button from "../components/ui/Button";
+import TextField from "../components/ui/TextField";
+import TextAreaField from "../components/ui/TextAreaField";
+import SelectField from "../components/ui/SelectField";
 import {
-  FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaFilter,
+  FaCalendarAlt, FaMapMarkerAlt, FaUsers,
   FaGraduationCap, FaExclamationTriangle, FaTheaterMasks, FaTimes, FaPlus
 } from "react-icons/fa";
-import "./Events.css";
 
 const eventCategories = [
-  { key: "All", icon: FaCalendarAlt, color: "#6366f1" },
-  { key: "Community", icon: FaUsers, color: "#10b981" },
-  { key: "Educational", icon: FaGraduationCap, color: "#f59e0b" },
-  { key: "Emergency", icon: FaExclamationTriangle, color: "#ef4444" },
-  { key: "Cultural", icon: FaTheaterMasks, color: "#8b5cf6" }
+  { key: "All", icon: FaCalendarAlt, color: "var(--color-primary-500)" },
+  { key: "Community", icon: FaUsers, color: "var(--color-success-600)" },
+  { key: "Educational", icon: FaGraduationCap, color: "var(--color-warning-600)" },
+  { key: "Emergency", icon: FaExclamationTriangle, color: "var(--color-error-600)" },
+  { key: "Cultural", icon: FaTheaterMasks, color: "var(--color-primary-700)" }
 ];
 
 export default function Events() {
   const { t } = useTranslation();
   const { user } = useContext(AuthContext);
+  const { addToast } = useToast();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("All");
@@ -70,93 +74,138 @@ export default function Events() {
       setEvents([created, ...events]);
       setShowCreateModal(false);
       setNewEvent({ title: "", description: "", category: "Community", date: "", time: "", location: "" });
-      alert("Event created successfully!");
+      addToast("Event created successfully!", { type: "success" });
     } catch (error) {
-      alert("Failed to create event");
+      addToast("Failed to create event", { type: "error" });
     }
   };
 
-  const getCategoryStyle = (cat) => {
+  const getCategoryColor = (cat) => {
     const found = eventCategories.find(c => c.key === cat);
-    return { backgroundColor: found?.color || "#6366f1" };
+    return found?.color || "var(--color-primary-500)";
   };
 
   return (
-    <div className="events-layout">
-      <Navbar />
-
-      <div className="events-container">
-        <header className="events-header">
-          <div className="header-content">
-            <h1 className="gradient-text">
+    <>
+      <PageHeader>
+        <div className="page-header-top">
+          <div>
+            <h1 className="page-title">
               <FaCalendarAlt /> {t("events_title") || "Community Events"}
             </h1>
-            <p>Discover what's happening in {user?.locality || "your locality"}</p>
+            <p className="page-subtitle">Discover what's happening in {user?.locality || "your locality"}</p>
           </div>
-          <button className="btn-premium create-btn" onClick={() => setShowCreateModal(true)}>
-            <FaPlus /> Create Event
-          </button>
-        </header>
-
-        {/* Category Filter */}
-        <div className="category-filter">
-          {eventCategories.map(cat => (
-            <button
-              key={cat.key}
-              className={`filter-btn ${activeCategory === cat.key ? 'active' : ''}`}
-              onClick={() => setActiveCategory(cat.key)}
-              style={activeCategory === cat.key ? { borderColor: cat.color, color: cat.color } : {}}
-            >
-              <cat.icon /> {cat.key}
-            </button>
-          ))}
+          <div className="page-actions">
+            <Button onClick={() => setShowCreateModal(true)} leftIcon={<FaPlus />}>
+              Create Event
+            </Button>
+          </div>
         </div>
+      </PageHeader>
+
+      {/* Category Filter */}
+      <section className="content-section">
+        <div className="section-header">
+          <h2 className="section-title">Browse by category</h2>
+        </div>
+        <div className="tabs">
+          <div className="tabs-list tabs-list-pills" role="tablist" aria-label="Event categories">
+            {eventCategories.map((cat) => {
+              const isActive = activeCategory === cat.key;
+              return (
+                <button
+                  key={cat.key}
+                  type="button"
+                  className={`tab ${isActive ? "active" : ""}`}
+                  onClick={() => setActiveCategory(cat.key)}
+                  role="tab"
+                  aria-selected={isActive}
+                >
+                  <cat.icon className="tab-icon" aria-hidden="true" />
+                  {cat.key}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
         {/* Events Grid */}
+      <section className="content-section">
+        <div className="section-header">
+          <h2 className="section-title">Events</h2>
+        </div>
+
         {loading ? (
           <div className="loader-container">
             <div className="premium-spinner"></div>
           </div>
         ) : filteredEvents.length > 0 ? (
-          <div className="events-grid">
-            {filteredEvents.map(event => (
-              <motion.div
-                key={event._id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ y: -5 }}
-                className="event-card glass"
-              >
-                <div className="event-category-badge" style={getCategoryStyle(event.category)}>
-                  {event.category}
-                </div>
-                <h3>{event.title}</h3>
-                <p className="event-desc">{event.description}</p>
-                <div className="event-meta">
-                  <div className="meta-item">
-                    <FaCalendarAlt /> {event.date} at {event.time}
+          <div className="content-grid auto-fill">
+            {filteredEvents.map((event) => {
+              const categoryColor = getCategoryColor(event.category);
+
+              return (
+                <motion.div
+                  key={event._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -4 }}
+                  className="card card-hover"
+                >
+                  <div className="card-body">
+                    <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
+                      <span
+                        className="badge"
+                        style={{ backgroundColor: categoryColor, color: "var(--color-neutral-0)" }}
+                      >
+                        {event.category}
+                      </span>
+                      <span className="badge badge-secondary">
+                        <FaUsers /> {event.attendees}
+                      </span>
+                    </div>
+
+                    <h3 style={{ margin: 0, fontSize: "var(--text-lg)", fontWeight: "var(--font-semibold)", color: "var(--text-primary)" }}>
+                      {event.title}
+                    </h3>
+                    <p style={{ marginTop: "var(--space-2)", marginBottom: 0, color: "var(--text-secondary)", lineHeight: "var(--leading-relaxed)" }}>
+                      {event.description}
+                    </p>
+
+                    <div style={{ display: "grid", gap: "var(--space-2)", marginTop: "var(--space-4)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-secondary)", fontSize: "var(--text-sm)" }}>
+                        <FaCalendarAlt aria-hidden="true" /> {event.date} at {event.time}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-secondary)", fontSize: "var(--text-sm)" }}>
+                        <FaMapMarkerAlt aria-hidden="true" /> {event.location}
+                      </div>
+                    </div>
                   </div>
-                  <div className="meta-item">
-                    <FaMapMarkerAlt /> {event.location}
+
+                  <div className="card-footer" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ color: "var(--text-tertiary)", fontSize: "var(--text-sm)" }}>By {event.organizer}</span>
+                    <Button variant="secondary" size="sm">Join Event</Button>
                   </div>
-                  <div className="meta-item">
-                    <FaUsers /> {event.attendees} attending
-                  </div>
-                </div>
-                <div className="event-footer">
-                  <span className="organizer">By {event.organizer}</span>
-                  <button className="btn-secondary">Join Event</button>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         ) : (
           <div className="empty-state">
-            <FaCalendarAlt size={50} color="#94a3b8" />
-            <p>No events found in this category.</p>
+            <div className="empty-state-icon" aria-hidden="true">
+              <FaCalendarAlt />
+            </div>
+            <h3 className="empty-state-title">No events yet</h3>
+            <p className="empty-state-description">Create the first event for your community or switch categories to explore.</p>
+            <div>
+              <Button onClick={() => setShowCreateModal(true)} leftIcon={<FaPlus />}>
+                Create Event
+              </Button>
+            </div>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Create Event Modal */}
       <AnimatePresence>
@@ -166,64 +215,81 @@ export default function Events() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="modal-container glass"
+              className="modal modal-lg"
               onClick={e => e.stopPropagation()}
             >
-              <button className="modal-close" onClick={() => setShowCreateModal(false)}>
-                <FaTimes />
-              </button>
-              <h2>Create New Event</h2>
-              <form onSubmit={handleCreateEvent} className="event-form">
-                <input
-                  type="text"
-                  placeholder="Event Title"
-                  value={newEvent.title}
-                  onChange={e => setNewEvent({ ...newEvent, title: e.target.value })}
-                  required
-                />
-                <textarea
-                  placeholder="Event Description"
-                  value={newEvent.description}
-                  onChange={e => setNewEvent({ ...newEvent, description: e.target.value })}
-                  required
-                />
-                <select
-                  value={newEvent.category}
-                  onChange={e => setNewEvent({ ...newEvent, category: e.target.value })}
+              <div className="modal-header">
+                <h2 className="modal-title">Create New Event</h2>
+                <button
+                  type="button"
+                  className="modal-close"
+                  onClick={() => setShowCreateModal(false)}
+                  aria-label="Close"
                 >
-                  <option value="Community">Community</option>
-                  <option value="Educational">Educational</option>
-                  <option value="Emergency">Emergency</option>
-                  <option value="Cultural">Cultural</option>
-                </select>
-                <div className="form-row">
-                  <input
-                    type="date"
-                    value={newEvent.date}
-                    onChange={e => setNewEvent({ ...newEvent, date: e.target.value })}
+                  <FaTimes />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateEvent}>
+                <div className="modal-body" style={{ display: "grid", gap: "var(--space-4)" }}>
+                  <TextField
+                    type="text"
+                    placeholder="Event Title"
+                    value={newEvent.title}
+                    onChange={e => setNewEvent({ ...newEvent, title: e.target.value })}
                     required
                   />
-                  <input
+                  <TextAreaField
+                    placeholder="Event Description"
+                    value={newEvent.description}
+                    onChange={e => setNewEvent({ ...newEvent, description: e.target.value })}
+                    required
+                  />
+                  <SelectField
+                    value={newEvent.category}
+                    onChange={e => setNewEvent({ ...newEvent, category: e.target.value })}
+                  >
+                    <option value="Community">Community</option>
+                    <option value="Educational">Educational</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="Cultural">Cultural</option>
+                  </SelectField>
+                  <div className="form-row">
+                    <TextField
+                      type="date"
+                      value={newEvent.date}
+                      onChange={e => setNewEvent({ ...newEvent, date: e.target.value })}
+                      required
+                    />
+                    <TextField
+                      type="text"
+                      placeholder="Time (e.g., 10:00 AM)"
+                      value={newEvent.time}
+                      onChange={e => setNewEvent({ ...newEvent, time: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <TextField
                     type="text"
-                    placeholder="Time (e.g., 10:00 AM)"
-                    value={newEvent.time}
-                    onChange={e => setNewEvent({ ...newEvent, time: e.target.value })}
+                    placeholder="Location"
+                    value={newEvent.location}
+                    onChange={e => setNewEvent({ ...newEvent, location: e.target.value })}
                     required
                   />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Location"
-                  value={newEvent.location}
-                  onChange={e => setNewEvent({ ...newEvent, location: e.target.value })}
-                  required
-                />
-                <button type="submit" className="btn-premium">Create Event</button>
+                <div className="modal-footer">
+                  <Button type="button" variant="secondary" onClick={() => setShowCreateModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" leftIcon={<FaPlus />}>
+                    Create Event
+                  </Button>
+                </div>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

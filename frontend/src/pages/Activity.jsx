@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import Navbar from "../components/common/Navbar";
+import PageHeader from "../components/layout/PageHeader";
 import { AuthContext } from "../context/AuthContext";
 import RatingModal from "../components/common/RatingModal";
 import ServiceCompletionModal from "../components/common/ServiceCompletionModal";
 import API from "../services/api";
+import Button from "../components/ui/Button";
 import {
     FaAward, FaHistory, FaHandHoldingHeart, FaExclamationCircle,
     FaStar, FaCheck, FaClock, FaSpinner
 } from "react-icons/fa";
-import "./Activity.css";
 
 export default function Activity() {
     const { t } = useTranslation();
@@ -52,13 +52,19 @@ export default function Activity() {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            'Open': { color: '#3b82f6', icon: FaClock },
-            'InProgress': { color: '#f59e0b', icon: FaSpinner },
-            'Completed': { color: '#10b981', icon: FaCheck }
+            'Open': { color: 'var(--color-primary-500)', icon: FaClock },
+            'InProgress': { color: 'var(--color-warning-500)', icon: FaSpinner },
+            'Completed': { color: 'var(--color-success-600)', icon: FaCheck }
         };
         const config = statusConfig[status] || statusConfig['Open'];
         return (
-            <span className="status-badge" style={{ background: `${config.color}15`, color: config.color }}>
+            <span
+                className="status-badge"
+                style={{
+                    background: `color-mix(in srgb, ${config.color} 12%, transparent)`,
+                    color: config.color
+                }}
+            >
                 <config.icon /> {status}
             </span>
         );
@@ -67,43 +73,51 @@ export default function Activity() {
     const isProvider = (service) => service?.providerId?._id === user?._id;
 
     return (
-        <div className="activity-layout">
-            <Navbar />
-            <div className="activity-container">
+        <>
+            <PageHeader title="My Activity" />
+
+            <div className="activity-page">
                 {/* User Profile Summary */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="user-profile-summary glass"
                 >
-                    <div className="user-avatar-big">{user?.name?.[0]}</div>
+                    <div className="user-avatar-big">{user?.name?.[0] || "U"}</div>
                     <div className="user-details">
-                        <h2>{user?.name}</h2>
-                        <p className="gradient-text">{user?.professionCategory} | {user?.locality}</p>
+                        <h2>{user?.name || "User"}</h2>
+                        <p className="user-subtitle">
+                            {user?.professionCategory || ""}
+                            {user?.professionCategory && (user?.locality || user?.city || user?.state) ? " • " : ""}
+                            {user?.locality || user?.city || user?.state || ""}
+                        </p>
                     </div>
                     <div className="impact-badge glass">
-                        <FaAward size={30} color="#f59e0b" />
-                        <div>
-                            <h3>Impact Score</h3>
-                            <div className="impact-score-big">{user?.impactScore || 0}</div>
-                        </div>
+                        <FaAward size={30} color="var(--color-warning-500)" />
+                        <div className="impact-score-big">{user?.impactScore || 0}</div>
                     </div>
                 </motion.div>
 
                 {/* Tabs */}
-                <div className="activity-tabs">
-                    <button
+                <div className="activity-tabs" role="tablist" aria-label="Activity tabs">
+                    <Button
+                        unstyled
+                        type="button"
                         className={`tab-btn ${activeTab === 'services' ? 'active' : ''}`}
                         onClick={() => setActiveTab('services')}
                     >
-                        <FaHandHoldingHeart /> My Services
-                    </button>
-                    <button
+                        <FaHandHoldingHeart />
+                        <span>My Services</span>
+                    </Button>
+                    <Button
+                        unstyled
+                        type="button"
                         className={`tab-btn ${activeTab === 'emergencies' ? 'active' : ''}`}
                         onClick={() => setActiveTab('emergencies')}
                     >
-                        <FaExclamationCircle /> My Emergencies
-                    </button>
+                        <FaExclamationCircle />
+                        <span>My Emergencies</span>
+                    </Button>
                 </div>
 
                 {/* Content */}
@@ -144,24 +158,28 @@ export default function Activity() {
                                         {/* Actions */}
                                         <div className="item-actions">
                                             {s.status === 'InProgress' && (
-                                                <button
+                                                <Button
+                                                    unstyled
+                                                    type="button"
                                                     className="btn-action complete"
                                                     onClick={() => handleMarkComplete(s)}
                                                 >
                                                     <FaCheck /> Mark Complete
-                                                </button>
+                                                </Button>
                                             )}
                                             {s.status === 'Completed' && !s.isRated && !isProvider(s) && (
-                                                <button
+                                                <Button
+                                                    unstyled
+                                                    type="button"
                                                     className="btn-action rate"
                                                     onClick={() => handleRateService(s)}
                                                 >
                                                     <FaStar /> Rate Service
-                                                </button>
+                                                </Button>
                                             )}
                                             {s.isRated && (
                                                 <span className="rated-badge">
-                                                    <FaStar color="#f59e0b" /> Rated {s.rating}/5
+                                                    <FaStar color="var(--color-warning-500)" /> Rated {s.rating}/5
                                                 </span>
                                             )}
                                         </div>
@@ -216,6 +234,6 @@ export default function Activity() {
                 providerName={selectedService?.providerId?.name}
                 onSuccess={fetchActivity}
             />
-        </div>
+        </>
     );
 }

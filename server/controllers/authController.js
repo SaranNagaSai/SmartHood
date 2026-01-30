@@ -6,75 +6,72 @@ const Notification = require("../models/Notification");
 const { generateToken } = require("../config/jwt");
 const logger = require("../utils/logger");
 const { sendWelcomeEmail } = require('../services/emailService');
-const { sendWelcomeNotification } = require('../services/notificationService');
+const { isAllowlistedAdmin } = require("../utils/adminAllowlist");
+const { normalizeEmail, normalizePhone } = require("../utils/adminAllowlist");
 
-// @desc    Register a new user
+
+// @desc    Register a new user (Simplified Flow)
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
     try {
         console.log("Register Payload Received:", req.body);
-        const {
-            username, name, email, phone, age, gender, nationality, bloodGroup,
-            address, locality, area, district, town, city, state, professionCategory, profession, experience,
-            income, currency, preferredLanguage, isStudent, studentDetails
-        } = req.body;
+        const { username, email, phone, password } = req.body;
 
-        const userExists = await User.findOne({ phone });
+        const normalizedUsername = username ? String(username).trim().toLowerCase() : "";
+        const normalizedEmail = normalizeEmail(email);
+        const normalizedPhone = normalizePhone(phone);
+
+        const hasEmail = Boolean(normalizedEmail);
+        const hasPhone = Boolean(normalizedPhone);
+
+        if (!normalizedUsername || !password) {
+            return res.status(400).json({ success: false, message: "Username and password are required" });
+        }
+
+        if (!hasEmail && !hasPhone) {
+            return res.status(400).json({
+                success: false,
+                message: "Provide at least one identifier: email and/or phone",
+            });
+        }
+
+        const orConditions = [{ username: normalizedUsername }];
+        if (hasEmail) orConditions.push({ email: normalizedEmail });
+        if (hasPhone) orConditions.push({ phone: normalizedPhone });
+
+        const userExists = await User.findOne({ $or: orConditions });
 
         if (userExists) {
-            return res.status(400).json({ success: false, message: "User already exists with this phone number" });
+            return res.status(400).json({ success: false, message: "User already exists with this phone, email, or username" });
         }
 
         const user = await User.create({
-            username, name, email, phone, age, gender, nationality, bloodGroup,
-            address, locality, area, district, town, city, state, professionCategory, profession, experience,
-            income, currency, preferredLanguage, isStudent, studentDetails,
-            role: isStudent ? "User" : "User" // Default role for new registrations
+            username: normalizedUsername,
+            name: normalizedUsername,
+            email: hasEmail ? normalizedEmail : undefined,
+            phone: hasPhone ? normalizedPhone : undefined,
+            authEmail: hasEmail ? normalizedEmail : undefined,
+            authPhone: hasPhone ? normalizedPhone : undefined,
+            password, // Password hashing is handled in User model pre-save hook
+            role: "User",
         });
 
         if (user) {
-            const token = generateToken(user._id);
+            const token = generateToken(user._id, user.tokenVersion || 0);
 
-            // Create Welcome Notification in Database using the new Notification model
+            // Welcome Notification
             await Notification.create({
                 recipient: user._id,
                 type: 'System',
                 title: 'Welcome to Smart Hood!',
-                message: `Hello ${user.name}, welcome to your Smart Hood community! Your Unique Registration ID is ${user.registrationId}. Use this for all community interactions.`,
+                message: `Hello ${user.name}, welcome! Your ID is ${user.registrationId}. Please complete your profile to access all features.`,
                 urgency: 'Low',
                 isRead: false
             });
 
-            // Mock Phone Notification / SMS
-            console.log(`\n--- SMS NOTIFICATION SENT ---`);
-            console.log(`To: ${user.phone}`);
-            console.log(`Message: Welcome to SmartHood, ${user.name}! Your Unique ID is: ${user.registrationId}.`);
-            console.log(`-----------------------------\n`);
-
-            // Send actual welcome notifications
-            // Email notification (if email provided)
-            if (email) {
-                sendWelcomeEmail(user)
-                    .then(result => {
-                        if (result.success) {
-                            console.log(`✅ Welcome email sent to: ${email}`);
-                        }
-                    })
-                    .catch(err => console.error('Email error:', err));
-            }
-
-            // Push notification (if FCM token exists)
-            if (user.fcmToken) {
-                sendWelcomeNotification(user)
-                    .then(result => {
-                        if (result.success) {
-                            console.log(`✅ Push notification sent to: ${user.name}`);
-                        }
-                    })
-                    .catch(err => console.error('Push notification error:', err));
-            } else {
-                console.log(`ℹ️ No FCM token for this user, will show notification after login`);
+            if (hasEmail) {
+                sendWelcomeEmail(user).catch(err => console.error('Email error:', err));
             }
 
             res.status(201).json({
@@ -91,7 +88,6 @@ const registerUser = async (req, res) => {
                     token,
                 },
             });
-
         } else {
             res.status(400).json({ success: false, message: "Invalid user data" });
         }
@@ -101,35 +97,72 @@ const registerUser = async (req, res) => {
     }
 };
 
-// @desc    Auth user & get token
+// @desc    Auth user & get token (Login with Identifier & Password)
 // @route   POST /api/auth/login
 // @access  Public
-const authUser = async (req, res) => {
+const loginUser = async (req, res) => {
     try {
-        const { phone, username } = req.body;
+        const { identifier, password } = req.body; // identifier can be username, phone, or email
 
-        const user = await User.findOne({ phone });
+        if (!identifier || !password) {
+            return res.status(400).json({ success: false, message: "Please provide credentials" });
+        }
 
-        // Strict Check: Phone must match AND Username must match
-        if (user && (user.username === username)) {
+        const rawIdentifier = String(identifier).trim();
+        const isEmail = rawIdentifier.includes("@");
+        const normalizedIdentifier = isEmail
+            ? normalizeEmail(rawIdentifier)
+            : normalizePhone(rawIdentifier) || rawIdentifier.toLowerCase();
+
+        // Check for user by email, phone, or username
+        const user = await User.findOne({
+            $or: [
+                { email: normalizedIdentifier },
+                { phone: normalizedIdentifier },
+                { username: normalizedIdentifier }
+            ]
+        });
+
+        if (user && (await user.matchPassword(password))) {
+            // Backfill immutable auth identifiers (older accounts).
+            let shouldSave = false;
+            if (!user.authEmail && user.email) {
+                user.authEmail = normalizeEmail(user.email);
+                shouldSave = true;
+            }
+            if (!user.authPhone && user.phone) {
+                user.authPhone = normalizePhone(user.phone) || user.phone;
+                shouldSave = true;
+            }
+            if (shouldSave) {
+                await user.save();
+            }
+
+            const token = generateToken(user._id, user.tokenVersion || 0);
+            const sessionRole = isAllowlistedAdmin({ email: user.email, phone: user.phone })
+                ? "Admin"
+                : "User";
+
             res.json({
                 success: true,
+                message: "Login successful!",
                 data: {
                     _id: user._id,
                     username: user.username,
                     name: user.name,
                     email: user.email,
                     phone: user.phone,
-                    role: user.role,
-                    locality: user.locality,
-                    token: generateToken(user._id),
-                }
+                    registrationId: user.registrationId,
+                    role: sessionRole,
+                    token,
+                    isStudent: user.isStudent // To help frontend redirect
+                },
             });
         } else {
-            res.status(401).json({ success: false, message: "Invalid phone or username" });
+            res.status(401).json({ success: false, message: "Invalid credentials" });
         }
     } catch (error) {
-        logger.error(`Error in authUser: ${error.message}`);
+        logger.error(`Error in loginUser: ${error.message}`);
         res.status(500).json({ success: false, message: "Login failed. Please try again." });
     }
 };
@@ -151,15 +184,4 @@ const getMyActivity = async (req, res) => {
     }
 };
 
-const updateFcmToken = async (req, res) => {
-    try {
-        const { fcmToken } = req.body;
-        const user = await User.findByIdAndUpdate(req.user._id, { fcmToken }, { new: true });
-        res.json({ success: true, message: "FCM Token updated", data: user });
-    } catch (error) {
-        logger.error(`Error in updateFcmToken: ${error.message}`);
-        res.status(500).json({ success: false, message: "Failed to update token" });
-    }
-};
-
-module.exports = { registerUser, authUser, getMyActivity, updateFcmToken };
+module.exports = { registerUser, loginUser, getMyActivity };

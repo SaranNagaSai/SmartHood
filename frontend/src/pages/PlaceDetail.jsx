@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaStar, FaMapMarkerAlt, FaClock, FaRupeeSign, FaArrowLeft, FaCalendar } from "react-icons/fa";
-import Navbar from "../components/common/Navbar";
+import PageHeader from "../components/layout/PageHeader";
 import API from "../services/api";
-import "./PlaceDetail.css";
+import Button from "../components/ui/Button";
+import TextAreaField from "../components/ui/TextAreaField";
+import useToast from "../hooks/useToast";
 
 const PlaceDetail = () => {
     const { id } = useParams();
@@ -15,6 +17,7 @@ const PlaceDetail = () => {
     const [selectedImage, setSelectedImage] = useState(0);
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [reviewData, setReviewData] = useState({ rating: 5, comment: "" });
+    const { addToast } = useToast();
 
     useEffect(() => {
         fetchPlaceDetails();
@@ -46,11 +49,11 @@ const PlaceDetail = () => {
         e.preventDefault();
         try {
             await API.post(`/tourism/places/${id}/review`, reviewData);
-            alert("✅ Review submitted successfully!");
+            addToast("Review submitted successfully!", { type: "success" });
             setShowReviewModal(false);
             fetchPlaceDetails(); // Refresh to show new review
         } catch (error) {
-            alert(error.response?.data?.message || "Failed to submit review");
+            addToast(error.response?.data?.message || "Failed to submit review", { type: "error" });
         }
     };
 
@@ -67,13 +70,12 @@ const PlaceDetail = () => {
     }
 
     return (
-        <div className="place-detail-layout">
-            <Navbar />
-
-            <div className="place-detail-container">
-                <button className="back-btn" onClick={() => navigate("/tourism")}>
+        <>
+            <PageHeader>
+                <Button unstyled type="button" className="back-btn" onClick={() => navigate("/tourism")}>
                     <FaArrowLeft /> Back to Tourism
-                </button>
+                </Button>
+            </PageHeader>
 
                 {/* Image Gallery */}
                 <div className="image-gallery">
@@ -109,7 +111,7 @@ const PlaceDetail = () => {
                             <div className="rating-display">
                                 <div className="rating-stars">
                                     {[...Array(5)].map((_, i) => (
-                                        <FaStar key={i} color={i < Math.round(place.ratings.average) ? "#fbbf24" : "#e5e7eb"} />
+                                        <FaStar key={i} color={i < Math.round(place.ratings.average) ? "var(--color-warning-500)" : "var(--color-neutral-200)"} />
                                     ))}
                                 </div>
                                 <span className="rating-text">{place.ratings.average.toFixed(1)} ({place.ratings.count} reviews)</span>
@@ -172,9 +174,9 @@ const PlaceDetail = () => {
                         <div className="reviews-section">
                             <div className="reviews-header">
                                 <h2>Reviews ({place.reviews?.length || 0})</h2>
-                                <button className="btn-add-review" onClick={() => setShowReviewModal(true)}>
+                                <Button unstyled type="button" className="btn-add-review" onClick={() => setShowReviewModal(true)}>
                                     ⭐ Write a Review
-                                </button>
+                                </Button>
                             </div>
 
                             <div className="reviews-list">
@@ -185,7 +187,7 @@ const PlaceDetail = () => {
                                                 <strong>{review.user?.name}</strong>
                                                 <div className="review-stars">
                                                     {[...Array(5)].map((_, i) => (
-                                                        <FaStar key={i} color={i < review.rating ? "#fbbf24" : "#e5e7eb"} size={14} />
+                                                        <FaStar key={i} color={i < review.rating ? "var(--color-warning-500)" : "var(--color-neutral-200)"} size={14} />
                                                     ))}
                                                 </div>
                                             </div>
@@ -215,14 +217,14 @@ const PlaceDetail = () => {
                                         style={{
                                             backgroundImage: nearPlace.images[0]
                                                 ? `url(${nearPlace.images[0].url})`
-                                                : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                                                : "linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-800) 100%)"
                                         }}
                                     />
                                     <div className="nearby-info">
                                         <h4>{nearPlace.name}</h4>
                                         <p className="nearby-location">{nearPlace.locality}</p>
                                         <div className="nearby-rating">
-                                            <FaStar color="#fbbf24" size={12} />
+                                            <FaStar color="var(--color-warning-500)" size={12} />
                                             <span>{nearPlace.ratings.average.toFixed(1)}</span>
                                         </div>
                                     </div>
@@ -250,7 +252,7 @@ const PlaceDetail = () => {
                                             <FaStar
                                                 key={star}
                                                 size={32}
-                                                color={star <= reviewData.rating ? "#fbbf24" : "#e5e7eb"}
+                                                color={star <= reviewData.rating ? "var(--color-warning-500)" : "var(--color-neutral-200)"}
                                                 onClick={() => setReviewData({ ...reviewData, rating: star })}
                                                 style={{ cursor: "pointer" }}
                                             />
@@ -259,7 +261,8 @@ const PlaceDetail = () => {
                                 </div>
                                 <div className="comment-input">
                                     <label>Your Review</label>
-                                    <textarea
+                                    <TextAreaField
+                                        unstyled
                                         value={reviewData.comment}
                                         onChange={(e) => setReviewData({ ...reviewData, comment: e.target.value })}
                                         placeholder="Share your experience..."
@@ -267,19 +270,16 @@ const PlaceDetail = () => {
                                     />
                                 </div>
                                 <div className="modal-actions">
-                                    <button type="button" onClick={() => setShowReviewModal(false)}>
+                                    <Button type="button" variant="secondary" onClick={() => setShowReviewModal(false)}>
                                         Cancel
-                                    </button>
-                                    <button type="submit" className="btn-submit">
-                                        Submit Review
-                                    </button>
+                                    </Button>
+                                    <Button type="submit">Submit Review</Button>
                                 </div>
                             </form>
                         </motion.div>
                     </div>
                 )}
-            </div>
-        </div>
+        </>
     );
 };
 

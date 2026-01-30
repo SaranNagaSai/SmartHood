@@ -2,6 +2,7 @@
 // Used for work completion and notifications
 
 import React from "react";
+import Button from "../ui/Button";
 
 export default function Modal({ open, onClose, children }) {
   if (!open) return null;
@@ -10,7 +11,7 @@ export default function Modal({ open, onClose, children }) {
     <div style={overlay}>
       <div style={modal}>
         {children}
-        <button onClick={onClose}>Close</button>
+        <Button type="button" onClick={onClose}>Close</Button>
       </div>
     </div>
   );
@@ -19,11 +20,11 @@ export default function Modal({ open, onClose, children }) {
 const overlay = {
   position: "fixed",
   inset: 0,
-  background: "rgba(0,0,0,0.5)"
+  background: "var(--surface-overlay)"
 };
 
 const modal = {
-  background: "#fff",
+  background: "var(--surface-primary)",
   padding: "20px",
   margin: "100px auto",
   width: "300px"

@@ -3,9 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaPhone, FaMapMarkerAlt, FaClock, FaUser, FaHeart, FaCheckCircle } from "react-icons/fa";
 import API from "../../services/api";
 import CompletionModal from "../modals/CompletionModal";
-import "./ServiceList.css";
+import Button from "../ui/Button";
+import useToast from "../../hooks/useToast";
+
+const MotionButton = motion.create(Button);
 
 const ServiceList = () => {
+    const { addToast } = useToast();
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("open"); // open, interested, completed
@@ -40,14 +44,17 @@ const ServiceList = () => {
                     [serviceId]: response.data.data
                 }));
 
-                alert(`✅ Interest registered! You can now contact:\n📞 ${response.data.data.requesterPhone}\n🆔 ${response.data.data.requesterUniqueId}`);
+                addToast(
+                    `Interest registered! Contact: ${response.data.data.requesterPhone} (ID: ${response.data.data.requesterUniqueId})`,
+                    { type: "success" }
+                );
 
                 // Refresh list
                 fetchServices();
             }
         } catch (error) {
             console.error("Error showing interest:", error);
-            alert(error.response?.data?.message || "Failed to show interest");
+            addToast(error.response?.data?.message || "Failed to show interest", { type: "error" });
         }
     };
 
@@ -64,13 +71,13 @@ const ServiceList = () => {
             );
 
             if (response.data.success) {
-                alert("✅ Service marked as completed! Revenue tracking updated.");
+                addToast("Service marked as completed! Revenue tracking updated.", { type: "success" });
                 setShowCompletionModal(false);
                 fetchServices();
             }
         } catch (error) {
             console.error("Error marking complete:", error);
-            alert(error.response?.data?.message || "Failed to mark complete");
+            addToast(error.response?.data?.message || "Failed to mark complete", { type: "error" });
         }
     };
 
@@ -88,131 +95,152 @@ const ServiceList = () => {
     }
 
     return (
-        <div className="service-list-container">
-            <div className="list-header">
-                <h2>🛎️ Service Requests</h2>
+        <div className="card">
+            <div className="card-header">
+                <div className="card-header-title">🛎️ Service Requests</div>
 
                 {/* Filter Tabs */}
-                <div className="filter-tabs">
-                    <button
-                        className={`filter-tab ${filter === "open" ? "active" : ""}`}
+                <div className="btn-group" role="tablist" aria-label="Service filters">
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant={filter === "open" ? "primary" : "secondary"}
+                        aria-pressed={filter === "open"}
                         onClick={() => setFilter("open")}
                     >
                         Open
-                    </button>
-                    <button
-                        className={`filter-tab ${filter === "interested" ? "active" : ""}`}
+                    </Button>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant={filter === "interested" ? "primary" : "secondary"}
+                        aria-pressed={filter === "interested"}
                         onClick={() => setFilter("interested")}
                     >
                         Interested
-                    </button>
-                    <button
-                        className={`filter-tab ${filter === "completed" ? "active" : ""}`}
+                    </Button>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant={filter === "completed" ? "primary" : "secondary"}
+                        aria-pressed={filter === "completed"}
                         onClick={() => setFilter("completed")}
                     >
                         Completed
-                    </button>
+                    </Button>
                 </div>
             </div>
 
-            {services.length === 0 ? (
-                <div className="empty-state">
-                    <p>No {filter} services found in your locality</p>
-                </div>
-            ) : (
-                <AnimatePresence>
-                    <div className="services-grid">
-                        {services.map((service) => {
-                            const isMyRequest = service.requesterId?._id === JSON.parse(localStorage.getItem("userInfo"))?._id;
-                            const phoneRevealed = revealedPhones[service._id];
-
-                            return (
-                                <motion.div
-                                    key={service._id}
-                                    className="service-card"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                >
-                                    {/* Service Type Badge */}
-                                    <div className={`type-badge ${service.type.toLowerCase()}`}>
-                                        {service.type}
-                                    </div>
-
-                                    {/* Category */}
-                                    <div className="service-category">{service.category}</div>
-
-                                    {/* Title */}
-                                    <h3 className="service-title">{service.title}</h3>
-
-                                    {/* Description */}
-                                    <p className="service-description">{service.description}</p>
-
-                                    {/* Requester Info */}
-                                    <div className="service-meta">
-                                        <div className="meta-item">
-                                            <FaUser /> {service.requesterId?.name || "Unknown"}
-                                        </div>
-                                        <div className="meta-item">
-                                            <FaMapMarkerAlt /> {service.locality}
-                                        </div>
-                                        <div className="meta-item">
-                                            <FaClock /> {formatDate(service.createdAt)}
-                                        </div>
-                                    </div>
-
-                                    {/* Phone Revealed State */}
-                                    {phoneRevealed && (
-                                        <div className="revealed-contact">
-                                            <FaPhone /> <strong>{phoneRevealed.requesterPhone}</strong>
-                                            <span>🆔 {phoneRevealed.requesterUniqueId}</span>
-                                        </div>
-                                    )}
-
-                                    {/* Interest Count */}
-                                    {service.interestedUsers && service.interestedUsers.length > 0 && (
-                                        <div className="interest-count">
-                                            <FaHeart color="#ef4444" /> {service.interestedUsers.length} interested
-                                        </div>
-                                    )}
-
-                                    {/* Action Buttons */}
-                                    <div className="service-actions">
-                                        {!isMyRequest && service.status === "Open" && (
-                                            <motion.button
-                                                className="btn-interest"
-                                                onClick={() => handleShowInterest(service._id)}
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                <FaHeart /> I'm Interested
-                                            </motion.button>
-                                        )}
-
-                                        {isMyRequest && service.status !== "Completed" && (
-                                            <motion.button
-                                                className="btn-complete"
-                                                onClick={() => handleMarkComplete(service)}
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                <FaCheckCircle /> Mark Complete
-                                            </motion.button>
-                                        )}
-
-                                        {service.status === "Completed" && (
-                                            <div className="completed-badge">
-                                                ✅ Completed
-                                                {service.rating && <span> • ⭐ {service.rating}/5</span>}
-                                            </div>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
+            <div className="card-body">
+                {services.length === 0 ? (
+                    <div className="empty-state">
+                        <div className="empty-state-icon" aria-hidden="true">
+                            <FaHeart />
+                        </div>
+                        <h3 className="empty-state-title">No services found</h3>
+                        <p className="empty-state-description">No {filter} services found in your locality right now.</p>
                     </div>
-                </AnimatePresence>
-            )}
+                ) : (
+                    <AnimatePresence>
+                        <div className="services-grid">
+                            {services.map((service) => {
+                                const isMyRequest = service.requesterId?._id === JSON.parse(localStorage.getItem("userInfo"))?._id;
+                                const phoneRevealed = revealedPhones[service._id];
+
+                                const typeClass = service.type?.toLowerCase() === 'offer' ? 'offer' : 'request';
+
+                                return (
+                                    <motion.div
+                                        key={service._id}
+                                        className="service-card"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                    >
+                                        <div className="service-card-header">
+                                            <div className="service-card-top">
+                                                <span className="service-category">{service.category}</span>
+                                                <span className={`service-type-badge ${typeClass}`}>{service.type}</span>
+                                            </div>
+                                            <h3 className="service-title">{service.title}</h3>
+                                            <p className="service-description">{service.description}</p>
+                                        </div>
+
+                                        <div className="service-card-body">
+                                            <div className="service-requester">
+                                                <div className="avatar avatar-md">
+                                                    {service.requesterId?.name?.[0] || 'U'}
+                                                </div>
+                                                <div className="service-requester-info">
+                                                    <div className="service-requester-name">
+                                                        {service.requesterId?.name || "Community Member"}
+                                                    </div>
+                                                    <div className="service-requester-meta">
+                                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                                                            <FaMapMarkerAlt /> {service.locality}
+                                                        </span>
+                                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                                                            <FaClock /> {formatDate(service.createdAt)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {phoneRevealed && (
+                                                <div style={{ marginTop: 'var(--space-4)' }}>
+                                                    <span className="badge badge-info">
+                                                        <FaPhone /> {phoneRevealed.requesterPhone} • 🆔 {phoneRevealed.requesterUniqueId}
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            {service.interestedUsers && service.interestedUsers.length > 0 && (
+                                                <div style={{ marginTop: 'var(--space-3)' }}>
+                                                    <span className="badge badge-error">
+                                                        <FaHeart /> {service.interestedUsers.length} interested
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="service-card-footer">
+                                            {!isMyRequest && service.status === "Open" && (
+                                                <MotionButton
+                                                    variant="primary"
+                                                    size="sm"
+                                                    onClick={() => handleShowInterest(service._id)}
+                                                    whileHover={{ scale: 1.03 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                >
+                                                    <FaHeart /> I'm Interested
+                                                </MotionButton>
+                                            )}
+
+                                            {isMyRequest && service.status !== "Completed" && (
+                                                <MotionButton
+                                                    variant="success"
+                                                    size="sm"
+                                                    onClick={() => handleMarkComplete(service)}
+                                                    whileHover={{ scale: 1.03 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                >
+                                                    <FaCheckCircle /> Mark Complete
+                                                </MotionButton>
+                                            )}
+
+                                            {service.status === "Completed" && (
+                                                <span className="badge badge-success">
+                                                    ✅ Completed{service.rating ? ` • ⭐ ${service.rating}/5` : ''}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    </AnimatePresence>
+                )}
+            </div>
 
             {/* Completion Modal */}
             {showCompletionModal && (

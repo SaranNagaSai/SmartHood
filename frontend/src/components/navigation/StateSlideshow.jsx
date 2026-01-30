@@ -2,25 +2,12 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaChevronLeft, FaChevronRight, FaMapMarkedAlt } from "react-icons/fa";
 import API from "../../services/api";
-import "./StateSlideshow.css";
+import Button from "../ui/Button";
 
 const StateSlideshow = ({ onStateSelect }) => {
     const [states, setStates] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
-
-    useEffect(() => {
-        loadStates();
-    }, []);
-
-    useEffect(() => {
-        if (isPlaying && states.length > 0) {
-            const interval = setInterval(() => {
-                setCurrentIndex((prev) => (prev + 1) % states.length);
-            }, 4000);
-            return () => clearInterval(interval);
-        }
-    }, [isPlaying, states.length]);
 
     const loadStates = async () => {
         try {
@@ -30,6 +17,10 @@ const StateSlideshow = ({ onStateSelect }) => {
             console.error("Error loading states:", error);
         }
     };
+
+    useEffect(() => {
+        loadStates();
+    }, []);
 
     const handlePrevious = () => {
         setIsPlaying(false);
@@ -56,9 +47,9 @@ const StateSlideshow = ({ onStateSelect }) => {
             </h3>
 
             <div className="slideshow-container">
-                <button className="slide-arrow left" onClick={handlePrevious}>
+                <Button unstyled type="button" className="slide-arrow left" onClick={handlePrevious}>
                     <FaChevronLeft />
-                </button>
+                </Button>
 
                 <div className="slides-wrapper">
                     {states.map((state, index) => (
@@ -82,16 +73,18 @@ const StateSlideshow = ({ onStateSelect }) => {
                     ))}
                 </div>
 
-                <button className="slide-arrow right" onClick={handleNext}>
+                <Button unstyled type="button" className="slide-arrow right" onClick={handleNext}>
                     <FaChevronRight />
-                </button>
+                </Button>
             </div>
 
             {/* Indicators */}
             <div className="slide-indicators">
                 {states.map((state, index) => (
-                    <button
+                    <Button
                         key={index}
+                        unstyled
+                        type="button"
                         className={`indicator ${index === currentIndex ? "active" : ""}`}
                         onClick={() => {
                             setCurrentIndex(index);
@@ -102,12 +95,14 @@ const StateSlideshow = ({ onStateSelect }) => {
             </div>
 
             {/* Play/Pause */}
-            <button
+            <Button
                 className="play-pause-btn"
+                unstyled
+                type="button"
                 onClick={() => setIsPlaying(!isPlaying)}
             >
                 {isPlaying ? "⏸ Pause" : "▶ Play"}
-            </button>
+            </Button>
         </div>
     );
 };

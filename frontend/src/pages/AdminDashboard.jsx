@@ -1,14 +1,15 @@
 // Enhanced Admin Analytics Dashboard with visualizations
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Navbar from '../components/common/Navbar';
+import PageHeader from '../components/layout/PageHeader';
 import { getPlatformAnalytics } from '../services/analyticsService';
 import {
   FaUsers, FaExclamationTriangle, FaHandshake, FaChartLine,
   FaMapMarkerAlt, FaBriefcase, FaDownload, FaFilter,
   FaArrowUp, FaArrowDown
 } from 'react-icons/fa';
-import './AdminDashboard.css';
+import Button from "../components/ui/Button";
+import SelectField from "../components/ui/SelectField";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -33,11 +34,8 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="admin-layout">
-        <Navbar />
-        <div className="loader-container">
-          <div className="premium-spinner"></div>
-        </div>
+      <div className="loader-container">
+        <div className="premium-spinner"></div>
       </div>
     );
   }
@@ -46,12 +44,9 @@ const AdminDashboard = () => {
 
   if (!data) {
     return (
-      <div className="admin-layout">
-        <Navbar />
-        <div className="empty-state-container" style={{ padding: '40px', textAlign: 'center' }}>
-          <h2>No Data Available</h2>
-          <p>Analytics will appear here once there is platform activity.</p>
-        </div>
+      <div className="empty-state-container" style={{ padding: '40px', textAlign: 'center' }}>
+        <h2>No Data Available</h2>
+        <p>Analytics will appear here once there is platform activity.</p>
       </div>
     );
   }
@@ -60,30 +55,31 @@ const AdminDashboard = () => {
   const maxProfession = data.professionBreakdown ? Math.max(...data.professionBreakdown.map(p => p.count)) : 0;
 
   return (
-    <div className="admin-layout">
-      <Navbar />
-      <div className="admin-dashboard-container">
-        {/* Header */}
+    <>
+      <PageHeader>
         <header className="dashboard-header">
           <div>
             <h1><FaChartLine /> Admin Analytics</h1>
             <p>Platform overview and community insights</p>
           </div>
           <div className="header-actions">
-            <select
+            <SelectField
               value={timeFilter}
               onChange={e => setTimeFilter(e.target.value)}
-              className="time-filter"
+              selectClassName="time-filter"
             >
               <option value="7d">Last 7 Days</option>
               <option value="30d">Last 30 Days</option>
               <option value="90d">Last 90 Days</option>
-            </select>
-            <button className="btn-download">
+            </SelectField>
+            <Button className="btn-download">
               <FaDownload /> Export
-            </button>
+            </Button>
           </div>
         </header>
+      </PageHeader>
+
+      <div className="admin-dashboard-container">
 
         {/* Main Stats Grid */}
         <div className="main-stats-grid">
@@ -224,7 +220,7 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

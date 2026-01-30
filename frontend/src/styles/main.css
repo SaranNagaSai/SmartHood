@@ -1,0 +1,22 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SMARTHOOD DESIGN SYSTEM v2.0
+   Main CSS Entry Point
+   
+   Import order matters! Load in this sequence:
+   1. Design System (tokens, variables, reset)
+   2. Core Components (buttons, cards, forms)
+   3. Extended Components (modals, tables, tabs)
+   4. Page-specific Styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Design Tokens & Utilities */
+@import './design-system.css';
+
+/* Core UI Components */
+@import './components.css';
+
+/* Extended UI Components */
+@import './components-extended.css';
+
+/* Page-specific Styles */
+@import './pages.css';

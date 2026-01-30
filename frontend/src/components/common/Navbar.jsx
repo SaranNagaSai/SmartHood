@@ -8,7 +8,7 @@ import {
   FaMapMarkedAlt, FaCalendarAlt
 } from "react-icons/fa";
 import logo from "../../assets/images/Smart Hood Logo.png";
-import "./Navbar.css";
+import Button from "../ui/Button";
 
 function Navbar() {
   const { t, i18n } = useTranslation();
@@ -56,14 +56,22 @@ function Navbar() {
 
       <div className="nav-right">
         <div className="lang-switcher">
-          <button
+          <Button
+            unstyled
+            type="button"
             className={i18n.language === 'en' ? 'active' : ''}
             onClick={() => i18n.changeLanguage("en")}
-          >EN</button>
-          <button
+          >
+            EN
+          </Button>
+          <Button
+            unstyled
+            type="button"
             className={i18n.language === 'te' ? 'active' : ''}
             onClick={() => i18n.changeLanguage("te")}
-          >TE</button>
+          >
+            TE
+          </Button>
         </div>
 
         {user ? (
@@ -74,14 +82,14 @@ function Navbar() {
               </div>
               <span className="user-name-label">{user.name}</span>
             </div>
-            <button onClick={handleLogout} className="logout-icon-btn" title="Logout">
+            <Button unstyled type="button" onClick={handleLogout} className="logout-icon-btn" title="Logout" aria-label="Logout">
               <FaSignOutAlt />
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="auth-btns">
             <Link to="/login" className="btn-login">{t("nav_login")}</Link>
-            <Link to="/register" className="btn-premium sm">{t("nav_join")}</Link>
+            <Link to="/register" className="btn btn-primary btn-sm">{t("nav_join")}</Link>
           </div>
         )}
       </div>

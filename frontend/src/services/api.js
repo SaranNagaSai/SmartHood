@@ -16,4 +16,18 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const code = error?.response?.data?.error?.code;
+    if (code === "PROFILE_INCOMPLETE") {
+      const currentPath = window.location?.pathname;
+      if (currentPath && currentPath !== "/profile") {
+        window.location.assign("/profile");
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default API;

@@ -80,6 +80,11 @@ PORT=5000
 MONGO_URI=mongodb://localhost:27017/smarthood
 JWT_SECRET=your_secret_key
 FIREBASE_SERVICE_ACCOUNT=path/to/serviceAccountKey.json
+
+# Web Push (VAPID) - required for /api/notifications/subscribe and push delivery
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=
 ```
 
 **Frontend (.env):**

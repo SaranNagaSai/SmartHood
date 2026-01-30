@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import AddPlaceForm from "../components/tourism/AddPlaceForm";
-import "./TourismAdd.css";
+import API from "../services/api";
 
 const TourismAdd = () => {
     const navigate = useNavigate();

@@ -10,13 +10,6 @@ const formatDate = (date) => {
 };
 
 /**
- * Generates a random OTP.
- */
-const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
-/**
  * Sanitizes user input (basic example).
  */
 const sanitize = (text) => {
@@ -25,6 +18,5 @@ const sanitize = (text) => {
 
 module.exports = {
     formatDate,
-    generateOTP,
     sanitize
 };

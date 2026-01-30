@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FaMicrophone, FaPaperPlane, FaMapMarkerAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import API from "../../services/api";
 import useSpeechInput from "../../hooks/useSpeechToText";
-import "./ServiceRequestForm.css";
+import Button from "../ui/Button";
+import TextField from "../ui/TextField";
+import TextAreaField from "../ui/TextAreaField";
+import SelectField from "../ui/SelectField";
 
 const ServiceRequestForm = ({ onSuccess }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     type: "Request", // Request or Offer
     category: "",
@@ -53,6 +58,13 @@ const ServiceRequestForm = ({ onSuccess }) => {
       }
     } catch (error) {
       console.error("Error creating service:", error);
+      const code = error.response?.data?.error?.code;
+      if (code === "PROFILE_INCOMPLETE") {
+        setMessage("❌ Profile incomplete. Please complete your location details in Profile.");
+        setTimeout(() => navigate("/profile"), 800);
+        return;
+      }
+
       setMessage("❌ " + (error.response?.data?.message || "Failed to post service"));
     } finally {
       setLoading(false);
@@ -61,37 +73,44 @@ const ServiceRequestForm = ({ onSuccess }) => {
 
   return (
     <motion.div
-      className="service-request-form-container"
+      className="card"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <h3 className="form-title">
-        {formData.type === "Request" ? "🙋 Request a Service" : "🤝 Offer a Service"}
-      </h3>
+      <div className="card-header">
+        <div className="card-header-title">
+          {formData.type === "Request" ? "🙋 Request a Service" : "🤝 Offer a Service"}
+        </div>
 
-      <form onSubmit={handleSubmit} className="service-form">
-        {/* Type Toggle */}
-        <div className="type-toggle">
-          <button
+        <div className="btn-group" role="tablist" aria-label="Service type">
+          <Button
             type="button"
-            className={`toggle-btn ${formData.type === "Request" ? "active" : ""}`}
+            size="sm"
+            variant={formData.type === "Request" ? "primary" : "secondary"}
+            aria-pressed={formData.type === "Request"}
             onClick={() => setFormData({ ...formData, type: "Request" })}
           >
-            Request Service
-          </button>
-          <button
+            Request
+          </Button>
+          <Button
             type="button"
-            className={`toggle-btn ${formData.type === "Offer" ? "active" : ""}`}
+            size="sm"
+            variant={formData.type === "Offer" ? "primary" : "secondary"}
+            aria-pressed={formData.type === "Offer"}
             onClick={() => setFormData({ ...formData, type: "Offer" })}
           >
-            Offer Service
-          </button>
+            Offer
+          </Button>
         </div>
+      </div>
+
+      <div className="card-body">
+        <form onSubmit={handleSubmit} className="service-form">
 
         {/* Category Selection */}
         <div className="form-group">
           <label>Category *</label>
-          <select
+          <SelectField
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             required
@@ -100,13 +119,13 @@ const ServiceRequestForm = ({ onSuccess }) => {
             {categories.map(cat => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
-          </select>
+          </SelectField>
         </div>
 
         {/* Title */}
         <div className="form-group">
           <label>Title *</label>
-          <input
+          <TextField
             type="text"
             placeholder="e.g., Need a plumber for bathroom repair"
             value={formData.title}
@@ -119,50 +138,53 @@ const ServiceRequestForm = ({ onSuccess }) => {
         <div className="form-group">
           <label>Description *</label>
           <div className="textarea-with-voice">
-            <textarea
+            <TextAreaField
               placeholder="Describe your requirement in detail..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={5}
               required
             />
-            <button
+            <Button
               type="button"
               className={`voice-btn ${isListening ? "listening" : ""}`}
+              variant="ghost"
               onClick={isListening ? stopListening : startListening}
+              aria-pressed={isListening}
             >
               <FaMicrophone />
               {isListening && <span className="pulse-dot"></span>}
-            </button>
+            </Button>
           </div>
           {isListening && <p className="listening-text">🎤 Listening...</p>}
         </div>
 
         {/* Location Info (Auto-filled) */}
-        <div className="location-info">
-          <FaMapMarkerAlt /> Your request will be visible to users in your locality
+        <div>
+          <span className="badge badge-secondary">
+            <FaMapMarkerAlt /> Visible to users in your locality
+          </span>
         </div>
 
         {message && (
-          <div className={`message ${message.includes("✅") ? "success" : "error"}`}>
-            {message}
+          <div className={`alert ${message.includes("✅") ? "alert-success" : "alert-error"}`} role="status">
+            <div className="alert-content">
+              <div className="alert-description">{message}</div>
+            </div>
           </div>
         )}
 
-        <motion.button
+        <Button
           type="submit"
-          className="submit-btn"
+          block
           disabled={loading}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          loading={loading}
+          leftIcon={<FaPaperPlane />}
         >
-          {loading ? "Posting..." : (
-            <>
-              <FaPaperPlane /> Post {formData.type}
-            </>
-          )}
-        </motion.button>
+          Post {formData.type}
+        </Button>
       </form>
+      </div>
     </motion.div>
   );
 };

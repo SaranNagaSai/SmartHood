@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FaStar, FaMapMarkerAlt, FaSearch, FaFilter, FaPlus } from "react-icons/fa";
-import Navbar from "../components/common/Navbar";
+import PageHeader from "../components/layout/PageHeader";
 import API from "../services/api";
-import "./Tourism.css";
+import TextField from "../components/ui/TextField";
+import Button from "../components/ui/Button";
 
 const Tourism = () => {
   const navigate = useNavigate();
@@ -74,150 +75,188 @@ const Tourism = () => {
   };
 
   return (
-    <div className="tourism-layout">
-      <Navbar />
-
-      <div className="tourism-container">
-        {/* Header */}
+    <>
+      <PageHeader>
         <motion.div
-          className="tourism-header"
-          initial={{ opacity: 0, y: -20 }}
+          className="page-header-top"
+          initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1>🏞️ Discover Places</h1>
-          <p className="subtitle">Explore beautiful destinations in your area</p>
+          <div>
+            <h1 className="page-title">🏞️ Discover Places</h1>
+            <p className="page-subtitle">Explore beautiful destinations in your area</p>
+          </div>
+          <div className="page-actions">
+            <Button onClick={() => navigate("/tourism/add")} leftIcon={<FaPlus />}>
+              Add a Place
+            </Button>
+          </div>
         </motion.div>
+      </PageHeader>
 
-        {/* Add Place Button */}
-        <button className="add-place-btn" onClick={() => navigate("/tourism/add")}>
-          <FaPlus /> Add a Place
-        </button>
-
-        {/* Featured Places */}
-        {featured.length > 0 && (
-          <section className="featured-section">
-            <h2>⭐ Featured in Your Locality</h2>
-            <div className="featured-grid">
-              {featured.map((place) => (
-                <motion.div
-                  key={place._id}
-                  className="featured-card"
-                  onClick={() => navigate(`/tourism/${place._id}`)}
-                  whileHover={{ scale: 1.05 }}
+      {/* Featured Places */}
+      {featured.length > 0 && (
+        <section className="content-section">
+          <div className="section-header">
+            <h2 className="section-title">⭐ Featured in Your Locality</h2>
+          </div>
+          <div className="content-grid auto-fill">
+            {featured.map((place) => (
+              <motion.div
+                key={place._id}
+                className="card card-hover card-clickable"
+                onClick={() => navigate(`/tourism/${place._id}`)}
+                whileHover={{ y: -2 }}
+              >
+                <div
+                  className="place-card-image"
+                  style={
+                    place.images?.[0]
+                      ? undefined
+                      : {
+                        background: "linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-800) 100%)"
+                      }
+                  }
                 >
-                  <div
-                    className="place-image"
-                    style={{
-                      backgroundImage: place.images[0]
-                        ? `url(${place.images[0].url})`
-                        : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                    }}
-                  >
-                    <div className="rating-badge">
-                      <FaStar /> {place.ratings.average.toFixed(1)}
+                  {place.images?.[0] ? (
+                    <img src={place.images[0].url} alt={place.name} loading="lazy" />
+                  ) : null}
+                  {place.ratings?.count > 0 ? (
+                    <div className="place-card-category" style={{ left: 'auto', right: 'var(--space-3)' }}>
+                      <FaStar style={{ marginRight: '6px' }} /> {place.ratings.average.toFixed(1)}
                     </div>
+                  ) : null}
+                </div>
+                <div className="place-card-body">
+                  <div className="place-card-name">{place.name}</div>
+                  <div className="place-card-location">
+                    <FaMapMarkerAlt /> {place.locality}
                   </div>
-                  <div className="place-info">
-                    <h3>{place.name}</h3>
-                    <p className="location-tag">
-                      <FaMapMarkerAlt /> {place.locality}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
 
-        {/* Search and Filters */}
-        <div className="search-filter-section">
-          <form onSubmit={handleSearch} className="search-bar">
-            <FaSearch />
-            <input
-              type="text"
-              placeholder="Search places..."
-              value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            />
-          </form>
+      {/* Search and Filters */}
+      <div className="content-section">
+        <div className="card">
+          <div className="card-body card-body-compact" style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+            <form onSubmit={handleSearch} style={{ flex: 1, minWidth: 240 }}>
+              <TextField
+                unstyled
+                type="text"
+                leftIcon={<FaSearch />}
+                placeholder="Search places..."
+                value={filters.search}
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              />
+            </form>
 
-          <button
-            className="filter-toggle-btn"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <FaFilter /> Filters
-          </button>
-        </div>
-
-        {/* Category Pills */}
-        <div className="category-pills">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              className={`category-pill ${filters.category === cat || (cat === "All" && !filters.category) ? "active" : ""}`}
-              onClick={() => handleCategoryClick(cat)}
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowFilters(!showFilters)}
+              leftIcon={<FaFilter />}
             >
-              {cat}
-            </button>
-          ))}
+              Filters
+            </Button>
+          </div>
         </div>
-
-        {/* Places Grid */}
-        {loading ? (
-          <div className="loader-container">
-            <div className="premium-spinner"></div>
-          </div>
-        ) : (
-          <div className="places-grid">
-            {places.length === 0 ? (
-              <div className="empty-state">
-                <p>No places found. Be the first to add one!</p>
-              </div>
-            ) : (
-              places.map((place) => (
-                <motion.div
-                  key={place._id}
-                  className="place-card"
-                  onClick={() => navigate(`/tourism/${place._id}`)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ y: -5 }}
-                >
-                  <div
-                    className="card-image"
-                    style={{
-                      backgroundImage: place.images[0]
-                        ? `url(${place.images[0].url})`
-                        : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                    }}
-                  >
-                    <div className="category-tag">{place.category}</div>
-                    {place.ratings.count > 0 && (
-                      <div className="rating-badge">
-                        <FaStar /> {place.ratings.average.toFixed(1)} ({place.ratings.count})
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="card-content">
-                    <h3>{place.name}</h3>
-                    <p className="description">{place.description.slice(0, 100)}...</p>
-                    <div className="card-meta">
-                      <span className="location">
-                        <FaMapMarkerAlt /> {place.locality}, {place.town}
-                      </span>
-                      {place.viewCount > 0 && (
-                        <span className="views">👁️ {place.viewCount} views</span>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
-        )}
       </div>
-    </div>
+
+      {/* Category Pills */}
+      <div className="content-section">
+        <div className="card">
+          <div className="card-body card-body-compact" style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+            {categories.map((cat) => {
+              const isActive = filters.category === cat || (cat === "All" && !filters.category);
+              return (
+                <Button
+                  key={cat}
+                  type="button"
+                  size="sm"
+                  variant={isActive ? 'primary' : 'secondary'}
+                  onClick={() => handleCategoryClick(cat)}
+                >
+                  {cat}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Places Grid */}
+      {loading ? (
+        <div className="loader-container">
+          <div className="premium-spinner"></div>
+        </div>
+      ) : (
+        <div className="places-grid">
+          {places.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon" aria-hidden="true">
+                <FaMapMarkerAlt />
+              </div>
+              <h3 className="empty-state-title">No places found</h3>
+              <p className="empty-state-description">Try a different category or search term — or add the first place in your area.</p>
+              <Button onClick={() => navigate("/tourism/add")} leftIcon={<FaPlus />}>
+                Add a Place
+              </Button>
+            </div>
+          ) : (
+            places.map((place) => (
+              <motion.div
+                key={place._id}
+                className="place-card"
+                onClick={() => navigate(`/tourism/${place._id}`)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -4 }}
+              >
+                <div
+                  className="place-card-image"
+                  style={
+                    place.images?.[0]
+                      ? undefined
+                      : {
+                        background: "linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-800) 100%)"
+                      }
+                  }
+                >
+                  {place.images?.[0] ? (
+                    <img src={place.images[0].url} alt={place.name} loading="lazy" />
+                  ) : null}
+                  <div className="place-card-category">{place.category}</div>
+                  {place.ratings.count > 0 ? (
+                    <div className="place-card-category" style={{ left: 'auto', right: 'var(--space-3)' }}>
+                      <FaStar style={{ marginRight: '6px' }} /> {place.ratings.average.toFixed(1)} ({place.ratings.count})
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="place-card-body">
+                  <div className="place-card-name">{place.name}</div>
+                  <div className="place-card-location">
+                    <FaMapMarkerAlt /> {place.locality}, {place.town}
+                  </div>
+                  <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
+                    {place.description.slice(0, 100)}...
+                  </p>
+                  {place.viewCount > 0 ? (
+                    <div style={{ marginTop: 'var(--space-3)' }}>
+                      <span className="badge badge-secondary">👁️ {place.viewCount} views</span>
+                    </div>
+                  ) : null}
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+      )}
+    </>
   );
 };
 

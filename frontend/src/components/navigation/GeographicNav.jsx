@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaChevronRight, FaHome, FaMapMarkerAlt } from "react-icons/fa";
 import API from "../../services/api";
-import "./GeographicNav.css";
+import Button from "../ui/Button";
 
 const GeographicNav = ({ onLocationChange }) => {
     const [hierarchy, setHierarchy] = useState({
@@ -44,15 +44,6 @@ const GeographicNav = ({ onLocationChange }) => {
             onLocationChange(hierarchy);
         }
     }, [hierarchy]);
-
-    const loadStates = async () => {
-        try {
-            const response = await API.get("/locations/states");
-            setOptions(prev => ({ ...prev, states: response.data.data }));
-        } catch (error) {
-            console.error("Error loading states:", error);
-        }
-    };
 
     const loadDistricts = async (state) => {
         try {
@@ -119,31 +110,31 @@ const GeographicNav = ({ onLocationChange }) => {
         <div className="geographic-nav">
             {/* Breadcrumbs */}
             <div className="breadcrumbs">
-                <button onClick={resetToState} className="breadcrumb-item">
+                <Button unstyled type="button" onClick={resetToState} className="breadcrumb-item">
                     <FaHome /> Home
-                </button>
+                </Button>
                 {hierarchy.state && (
                     <>
                         <FaChevronRight className="breadcrumb-separator" />
-                        <button onClick={() => setCurrentView("district")} className="breadcrumb-item">
+                        <Button unstyled type="button" onClick={() => setCurrentView("district")} className="breadcrumb-item">
                             {hierarchy.state}
-                        </button>
+                        </Button>
                     </>
                 )}
                 {hierarchy.district && (
                     <>
                         <FaChevronRight className="breadcrumb-separator" />
-                        <button onClick={() => setCurrentView("town")} className="breadcrumb-item">
+                        <Button unstyled type="button" onClick={() => setCurrentView("town")} className="breadcrumb-item">
                             {hierarchy.district}
-                        </button>
+                        </Button>
                     </>
                 )}
                 {hierarchy.town && (
                     <>
                         <FaChevronRight className="breadcrumb-separator" />
-                        <button onClick={() => setCurrentView("locality")} className="breadcrumb-item">
+                        <Button unstyled type="button" onClick={() => setCurrentView("locality")} className="breadcrumb-item">
                             {hierarchy.town}
-                        </button>
+                        </Button>
                     </>
                 )}
                 {hierarchy.locality && (
@@ -157,9 +148,9 @@ const GeographicNav = ({ onLocationChange }) => {
             {/* Quick Actions */}
             <div className="quick-actions">
                 {userLocation && (
-                    <button onClick={goToMyLocality} className="quick-btn">
+                    <Button unstyled type="button" onClick={goToMyLocality} className="quick-btn">
                         <FaMapMarkerAlt /> My Locality
-                    </button>
+                    </Button>
                 )}
             </div>
 

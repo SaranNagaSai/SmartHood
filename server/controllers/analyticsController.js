@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Emergency = require("../models/Emergency");
+const EmergencyResponse = require("../models/EmergencyResponse");
 const ServiceRequest = require("../models/ServiceRequest");
 const logger = require("../utils/logger");
 
@@ -12,7 +13,7 @@ const getPlatformAnalytics = async (req, res) => {
             User.countDocuments(),
             User.countDocuments({ isStudent: true }),
             Emergency.countDocuments(),
-            Emergency.countDocuments({ status: 'Active' }),
+            Emergency.countDocuments({ status: 'Open' }),
             ServiceRequest.countDocuments()
         ]);
 
@@ -75,7 +76,7 @@ const getUserAnalytics = async (req, res) => {
         const stats = await Promise.all([
             ServiceRequest.countDocuments({ providerId: userId, status: 'Completed' }),
             ServiceRequest.countDocuments({ requesterId: userId }),
-            Emergency.countDocuments({ 'volunteers.userId': userId })
+            EmergencyResponse.countDocuments({ responderId: userId, status: 'Active' })
         ]);
 
         res.json({

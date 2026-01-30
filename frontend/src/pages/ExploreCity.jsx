@@ -5,9 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { LocationContext } from '../context/LocationContext';
 import API from '../services/api';
-import Navbar from '../components/common/Navbar';
+import PageHeader from '../components/layout/PageHeader';
 import { FaMapMarkerAlt, FaCheck, FaHome, FaUsers, FaArrowRight } from 'react-icons/fa';
-import './ExploreCity.css';
+import Button from "../components/ui/Button";
 
 const ExploreCity = () => {
   const { t } = useTranslation();
@@ -58,9 +58,8 @@ const ExploreCity = () => {
   if (loading) return <div className="loader-container"><div className="premium-spinner"></div></div>;
 
   return (
-    <div className="explore-layout">
-      <Navbar />
-      <div className="explore-container">
+    <>
+      <PageHeader>
         <header className="explore-header">
           <h1 className="gradient-text">
             <FaMapMarkerAlt /> {t("explore_localities") || "Explore Localities"}
@@ -71,12 +70,13 @@ const ExploreCity = () => {
             <span>Current Context:</span>
             <strong>{currentContext || "Not Set"}</strong>
             {!isHomeContext && (
-              <button className="home-btn" onClick={handleGoHome}>
+              <Button unstyled className="home-btn" onClick={handleGoHome}>
                 <FaHome /> Return Home
-              </button>
+              </Button>
             )}
           </div>
         </header>
+      </PageHeader>
 
         <div className="localities-grid">
           {localities.map(loc => (
@@ -117,13 +117,12 @@ const ExploreCity = () => {
             className="action-bar glass"
           >
             <p>You've selected a new locality. Posts and services will be shown for this area.</p>
-            <button className="btn-premium" onClick={handleProceed}>
-              Proceed to Dashboard <FaArrowRight />
-            </button>
+            <Button onClick={handleProceed} rightIcon={<FaArrowRight />}>
+              Proceed to Dashboard
+            </Button>
           </motion.div>
         )}
-      </div>
-    </div>
+    </>
   );
 };
 

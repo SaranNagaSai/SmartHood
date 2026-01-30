@@ -3,7 +3,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaCheck, FaRupeeSign, FaStar, FaClipboardCheck } from 'react-icons/fa';
 import API from '../../services/api';
-import './ServiceCompletionModal.css';
+import Button from "../ui/Button";
+import TextField from "../ui/TextField";
+import TextAreaField from "../ui/TextAreaField";
+import useToast from "../../hooks/useToast";
 
 export default function ServiceCompletionModal({
     isOpen,
@@ -13,6 +16,7 @@ export default function ServiceCompletionModal({
     onSuccess,
     onRatingOpen
 }) {
+    const { addToast } = useToast();
     const [revenue, setRevenue] = useState('');
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
@@ -28,7 +32,7 @@ export default function ServiceCompletionModal({
             });
             setStep('success');
         } catch (error) {
-            alert(error.response?.data?.message || "Failed to confirm completion");
+            addToast(error.response?.data?.message || "Failed to confirm completion", { type: "error" });
         } finally {
             setLoading(false);
         }
@@ -59,14 +63,14 @@ export default function ServiceCompletionModal({
                         className="completion-modal glass"
                         onClick={e => e.stopPropagation()}
                     >
-                        <button className="modal-close-btn" onClick={handleClose}>
+                        <Button className="modal-close" variant="ghost" size="sm" onClick={handleClose} aria-label="Close">
                             <FaTimes />
-                        </button>
+                        </Button>
 
                         {step === 'confirm' ? (
                             <>
                                 <div className="completion-header">
-                                    <FaClipboardCheck size={50} color="#10b981" />
+                                    <FaClipboardCheck size={50} color="var(--color-success-600)" />
                                     <h2>Confirm Completion</h2>
                                     <p>Mark this service as completed?</p>
                                 </div>
@@ -91,7 +95,7 @@ export default function ServiceCompletionModal({
                                         <label>
                                             <FaRupeeSign /> Revenue Earned (Optional)
                                         </label>
-                                        <input
+                                        <TextField
                                             type="number"
                                             placeholder="Enter amount..."
                                             value={revenue}
@@ -104,7 +108,7 @@ export default function ServiceCompletionModal({
                                 {/* Notes */}
                                 <div className="notes-section">
                                     <label>Completion Notes (Optional)</label>
-                                    <textarea
+                                    <TextAreaField
                                         placeholder="Any notes about the work done..."
                                         value={notes}
                                         onChange={e => setNotes(e.target.value)}
@@ -113,20 +117,18 @@ export default function ServiceCompletionModal({
                                 </div>
 
                                 <div className="completion-actions">
-                                    <button className="btn-cancel" onClick={handleClose}>
+                                    <Button variant="secondary" onClick={handleClose}>
                                         Cancel
-                                    </button>
-                                    <button
-                                        className="btn-confirm"
+                                    </Button>
+
+                                    <Button
                                         onClick={handleComplete}
                                         disabled={loading}
+                                        loading={loading}
+                                        leftIcon={<FaCheck />}
                                     >
-                                        {loading ? 'Confirming...' : (
-                                            <>
-                                                <FaCheck /> Confirm Completion
-                                            </>
-                                        )}
-                                    </button>
+                                        Confirm Completion
+                                    </Button>
                                 </div>
                             </>
                         ) : (
@@ -144,14 +146,14 @@ export default function ServiceCompletionModal({
 
                                     {!isProvider && (
                                         <div className="rating-prompt">
-                                            <FaStar color="#f59e0b" />
+                                            <FaStar color="var(--color-warning-500)" />
                                             <span>Would you like to rate this service?</span>
                                         </div>
                                     )}
 
-                                    <button className="btn-primary" onClick={handleClose}>
+                                    <Button onClick={handleClose}>
                                         {!isProvider ? 'Rate Now' : 'Done'}
-                                    </button>
+                                    </Button>
                                 </motion.div>
                             </>
                         )}

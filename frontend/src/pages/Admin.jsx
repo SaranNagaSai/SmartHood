@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 // Removed unused useTranslation import
 // Removed unused motion import
-import Navbar from "../components/common/Navbar";
+import PageHeader from "../components/layout/PageHeader";
 import API from "../services/api";
 import { FaUsers, FaExclamationCircle, FaClipboardCheck, FaChartBar, FaCheck } from "react-icons/fa";
+import Button from "../components/ui/Button";
+import useToast from "../hooks/useToast";
 
 export default function Admin() {
+    const { addToast } = useToast();
     // Removed unused 't'
     const [tab, setTab] = useState("Analytics");
     const [data, setData] = useState({ users: [], complaints: [], analytics: {} });
@@ -43,21 +46,27 @@ export default function Admin() {
     const handleVerify = async (id) => {
         try {
             await API.put(`/admin/users/${id}/verify`);
-            alert("User verified!");
+            addToast("User verified!", { type: "success" });
             fetchAdminData();
         } catch { // Removed unused error object
-            alert("Verification failed");
+            addToast("Verification failed", { type: "error" });
         }
     };
 
     return (
         <>
-            <Navbar />
+            <PageHeader title="Admin" />
             <div style={styles.container}>
                 <aside style={styles.sidebar}>
-                    <button style={tab === 'Analytics' ? styles.activeTab : styles.tab} onClick={() => setTab('Analytics')}><FaChartBar /> Dashboard</button>
-                    <button style={tab === 'Users' ? styles.activeTab : styles.tab} onClick={() => setTab('Users')}><FaUsers /> User Management</button>
-                    <button style={tab === 'Complaints' ? styles.activeTab : styles.tab} onClick={() => setTab('Complaints')}><FaExclamationCircle /> Complaints</button>
+                    <Button unstyled style={tab === 'Analytics' ? styles.activeTab : styles.tab} onClick={() => setTab('Analytics')}>
+                        <FaChartBar /> Dashboard
+                    </Button>
+                    <Button unstyled style={tab === 'Users' ? styles.activeTab : styles.tab} onClick={() => setTab('Users')}>
+                        <FaUsers /> User Management
+                    </Button>
+                    <Button unstyled style={tab === 'Complaints' ? styles.activeTab : styles.tab} onClick={() => setTab('Complaints')}>
+                        <FaExclamationCircle /> Complaints
+                    </Button>
                 </aside>
 
                 <main style={styles.main}>
@@ -100,7 +109,18 @@ function UsersView({ users, onVerify }) {
                         <td>{u.locality}</td>
                         <td>{u.role}</td>
                         <td>{u.isVerified ? 'Verified' : 'Pending'}</td>
-                        <td>{!u.isVerified && <button onClick={() => onVerify(u._id)} style={styles.verifyBtn}><FaCheck /></button>}</td>
+                        <td>
+                            {!u.isVerified && (
+                                <Button
+                                    unstyled
+                                    onClick={() => onVerify(u._id)}
+                                    style={styles.verifyBtn}
+                                    aria-label="Verify user"
+                                >
+                                    <FaCheck />
+                                </Button>
+                            )}
+                        </td>
                     </tr>
                 ))}
             </tbody>
@@ -109,13 +129,13 @@ function UsersView({ users, onVerify }) {
 }
 
 const styles = {
-    container: { display: "flex", minHeight: "100vh", background: "#f1f5f9" },
-    sidebar: { width: "250px", background: "#1e293b", color: "#fff", padding: "40px 20px", display: "flex", flexDirection: "column", gap: "10px" },
-    tab: { padding: "12px", border: "none", background: "transparent", color: "#94a3b8", cursor: "pointer", textAlign: "left", fontSize: "1rem" },
-    activeTab: { padding: "12px", border: "none", background: "#334155", color: "#fff", cursor: "pointer", textAlign: "left", fontSize: "1rem", borderRadius: "8px" },
+    container: { display: "flex", minHeight: "100vh", background: "var(--bg-secondary)" },
+    sidebar: { width: "250px", background: "var(--bg-inverse)", color: "var(--text-inverse)", padding: "40px 20px", display: "flex", flexDirection: "column", gap: "10px" },
+    tab: { padding: "12px", border: "none", background: "transparent", color: "var(--color-neutral-300)", cursor: "pointer", textAlign: "left", fontSize: "1rem" },
+    activeTab: { padding: "12px", border: "none", background: "var(--color-neutral-800)", color: "var(--text-inverse)", cursor: "pointer", textAlign: "left", fontSize: "1rem", borderRadius: "8px" },
     main: { flex: 1, padding: "40px" },
     statsGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px" },
-    statCard: { background: "#fff", padding: "24px", borderRadius: "16px", textAlign: "center", boxShadow: "0 4px 6px rgba(0,0,0,0.02)" },
-    table: { width: "100%", background: "#fff", borderRadius: "16px", padding: "20px", borderCollapse: "collapse" },
-    verifyBtn: { padding: "8px", background: "#10b981", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }
+    statCard: { background: "var(--surface-primary)", padding: "24px", borderRadius: "16px", textAlign: "center", boxShadow: "0 4px 6px rgba(0,0,0,0.02)" },
+    table: { width: "100%", background: "var(--surface-primary)", borderRadius: "16px", padding: "20px", borderCollapse: "collapse" },
+    verifyBtn: { padding: "8px", background: "var(--color-success-600)", color: "var(--text-inverse)", border: "none", borderRadius: "5px", cursor: "pointer" }
 };

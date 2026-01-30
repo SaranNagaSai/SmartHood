@@ -1,22 +1,19 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
+import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/common/Navbar";
 import { AuthContext } from "../context/AuthContext";
 import API from "../services/api";
 import {
-  FaExclamationCircle, FaBullhorn, FaHandHoldingHeart,
-  FaCalendarAlt, FaShoppingBasket, FaTimes, FaUsers,
-  FaMapMarkerAlt, FaMapMarkedAlt, FaPhoneAlt, FaUser,
-  FaBriefcase, FaStar, FaChevronLeft, FaChevronRight, FaGlobe
-} from "react-icons/fa";
+  FiAlertCircle, FiHeart, FiCalendar, FiMapPin,
+  FiUsers, FiPhone, FiUser, FiBriefcase, FiStar,
+  FiChevronLeft, FiChevronRight, FiGlobe, FiX,
+  FiArrowRight, FiShoppingBag, FiMap, FiZap
+} from "react-icons/fi";
 import EmergencyForm from "../components/forms/EmergencyForm";
 import ServiceForm from "../components/forms/ServiceForm";
 import GeographicNav from "../components/navigation/GeographicNav";
-import StateSlideshow from "../components/navigation/StateSlideshow";
-import "./Home.css";
-import "./HomeNavStyles.css";
+import Button from "../components/ui/Button";
 
 // Profession icons mapping
 const professionIcons = {
@@ -41,13 +38,15 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(null);
 
-  // New states for profession cards and state slideshow
+  // States for profession cards and state slideshow
   const [professionStats, setProfessionStats] = useState([]);
   const [stateStats, setStateStats] = useState([]);
-  const [currentStateIndex, setCurrentStateIndex] = useState(0);
   const [selectedProfession, setSelectedProfession] = useState(null);
   const [professionPeople, setProfessionPeople] = useState([]);
   const [loadingPeople, setLoadingPeople] = useState(false);
+
+  const stateCarouselRef = useRef(null);
+  const [isStateCarouselPaused, setIsStateCarouselPaused] = useState(false);
 
   // Geographic navigation state
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -68,7 +67,6 @@ function Home() {
       setStateStats(stateRes.data.data || []);
     } catch (error) {
       console.error("Error fetching dashboard data", error);
-      // Ensure state is empty on error so UI handles it gracefully
       setProfessionStats([]);
       setStateStats([]);
     } finally {
@@ -76,15 +74,59 @@ function Home() {
     }
   }, [user]);
 
-  // Auto-rotate state slideshow
-  useEffect(() => {
-    if (stateStats.length > 0) {
-      const interval = setInterval(() => {
-        setCurrentStateIndex(prev => (prev + 1) % stateStats.length);
-      }, 4000);
-      return () => clearInterval(interval);
+  const getStateCarouselStep = useCallback(() => {
+    const viewport = stateCarouselRef.current;
+    if (!viewport) return 260;
+    const firstCard = viewport.querySelector('.state-deal-card');
+    if (!firstCard) return 260;
+    const width = firstCard.getBoundingClientRect().width;
+
+    const track = viewport.querySelector('.state-carousel-track');
+    let gap = 0;
+    if (track) {
+      const computedGap = window.getComputedStyle(track).gap;
+      const parsed = parseFloat(computedGap);
+      gap = Number.isFinite(parsed) ? parsed : 0;
     }
-  }, [stateStats]);
+
+    return Math.max(220, Math.round(width + gap));
+  }, []);
+
+  const scrollStateCarousel = useCallback(
+    (direction) => {
+      const viewport = stateCarouselRef.current;
+      if (!viewport) return;
+      const step = getStateCarouselStep();
+      const delta = direction === 'left' ? -step : step;
+      const maxScrollLeft = viewport.scrollWidth - viewport.clientWidth;
+      const nextLeft = Math.min(Math.max(viewport.scrollLeft + delta, 0), maxScrollLeft);
+      viewport.scrollTo({ left: nextLeft, behavior: 'smooth' });
+    },
+    [getStateCarouselStep]
+  );
+
+  // Auto-slide like a deals carousel
+  useEffect(() => {
+    if (!stateStats.length) return;
+    if (isStateCarouselPaused) return;
+    const viewport = stateCarouselRef.current;
+    if (!viewport) return;
+
+    const interval = setInterval(() => {
+      const maxScrollLeft = viewport.scrollWidth - viewport.clientWidth;
+      if (maxScrollLeft <= 0) return;
+
+      // Wrap to start when reaching the end
+      if (viewport.scrollLeft >= maxScrollLeft - 8) {
+        viewport.scrollTo({ left: 0, behavior: 'smooth' });
+        return;
+      }
+
+      viewport.scrollBy({ left: getStateCarouselStep(), behavior: 'smooth' });
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [stateStats.length, isStateCarouselPaused, getStateCarouselStep]);
 
   useEffect(() => {
     if (user) {
@@ -114,287 +156,333 @@ function Home() {
     setProfessionPeople([]);
   };
 
-  const nextState = () => setCurrentStateIndex(prev => (prev + 1) % stateStats.length);
-  const prevState = () => setCurrentStateIndex(prev => (prev - 1 + stateStats.length) % stateStats.length);
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t("greeting_morning", { defaultValue: "Good morning" });
+    if (hour < 18) return t("greeting_afternoon", { defaultValue: "Good afternoon" });
+    return t("greeting_evening", { defaultValue: "Good evening" });
+  };
 
   return (
-    <div className="home-layout">
-      <Navbar />
-
-      {/* Main Container for Navigation & Content */}
-      <div className="container">
-        {/* Geographic Navigation - Toggleable Flow */}
-        {showGeographicNav && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="geographic-nav-wrapper glass"
-          >
-            <div className="nav-header">
-              <h3 className="gradient-text">🗺️ {t("explore_location") || "Explore by Location"}</h3>
-              <button
-                className="close-nav-btn"
-                onClick={() => setShowGeographicNav(false)}
-              >
-                ✕
-              </button>
-            </div>
-            <GeographicNav
-              onLocationChange={(location) => {
-                setSelectedLocation(location);
-                // Location-specific filtering is handled by the component
-              }}
-            />
-          </motion.div>
-        )}
+    <div>
+      {/* Page Header */}
+      <div className="home-header">
+        <span className="home-greeting">{getGreeting()}</span>
+        <h1 className="home-title">{user?.name || "User"}</h1>
+        <div className="home-location">
+          <FiMapPin size={16} />
+          {user?.locality}, {user?.city}
+        </div>
       </div>
 
-      {/* Hero Section */}
-      <header className="home-hero">
-        <motion.div
-          className="hero-content"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="location-badge glass">
-            <FaMapMarkerAlt /> {user?.locality}, {user?.city}, {user?.state}
+      {/* Users Across India (Top Carousel) */}
+      {stateStats.length > 0 && (
+        <div className="content-section state-carousel-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <FiGlobe className="section-title-icon" />
+              Users Across India
+            </h2>
           </div>
-          <h1 className="hero-title">
-            Welcome to <span className="secondary-gold">Smart Hood</span>
-          </h1>
-          <p className="hero-subtitle">
-            {t("welcome")}, <span className="user-highlight">{user?.name}</span>! {t("hero_description") || "Your neighborhood, connected and smarter."}
-          </p>
 
-          <div className="hero-actions">
-            <button className="btn-premium" onClick={() => navigate('/emergency')}>
-              <FaExclamationCircle /> {t("nav_emergencies")}
-            </button>
-            <button className="btn-secondary glass" onClick={() => navigate('/explore')}>
-              <FaMapMarkedAlt /> {t("hero_explore") || "Explore"}
-            </button>
-          </div>
-        </motion.div>
-      </header>
-
-      <div className="container">
-        {!showGeographicNav && (
-          <button
-            className="show-nav-btn"
-            onClick={() => setShowGeographicNav(true)}
+          <div
+            className="state-carousel"
+            onMouseEnter={() => setIsStateCarouselPaused(true)}
+            onMouseLeave={() => setIsStateCarouselPaused(false)}
           >
-            🗺️ Browse by Location
-          </button>
-        )}
-      </div>
+            <Button
+              unstyled
+              className="state-carousel-nav left"
+              onClick={() => scrollStateCarousel('left')}
+              aria-label="Scroll states left"
+            >
+              <FiChevronLeft size={20} />
+            </Button>
 
-      {/* State Slideshow Section */}
-      {
-        stateStats.length > 0 && (
-          <section className="state-slideshow-section">
-            <h2 className="section-title"><FaGlobe /> Users Across India</h2>
-            <div className="state-slideshow">
-              <button className="slide-nav prev" onClick={prevState}><FaChevronLeft /></button>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentStateIndex}
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  className="state-slide"
-                >
-                  <div className="state-card glass">
-                    <div className="state-icon">📍</div>
-                    <h3>{stateStats[currentStateIndex]?.state || 'State'}</h3>
-                    <div className="state-count">
-                      <FaUsers /> {stateStats[currentStateIndex]?.count || 0}
+            <div className="state-carousel-viewport" ref={stateCarouselRef}>
+              <div className="state-carousel-track">
+                {stateStats.map((item, idx) => (
+                  <motion.div
+                    key={`${item?.state || 'state'}-${idx}`}
+                    whileHover={{ y: -3 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="state-deal-card"
+                  >
+                    <div className="state-deal-pin"><FiMapPin /></div>
+                    <div className="state-deal-name">{item?.state || 'State'}</div>
+                    <div className="state-deal-count">
+                      <FiUsers /> {item?.count || 0}
                     </div>
-                    <p>Registered Users</p>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-              <button className="slide-nav next" onClick={nextState}><FaChevronRight /></button>
-
-              {/* Dots indicator */}
-              <div className="slide-dots">
-                {stateStats.slice(0, 7).map((_, idx) => (
-                  <span
-                    key={idx}
-                    className={`dot ${idx === currentStateIndex % 7 ? 'active' : ''}`}
-                    onClick={() => setCurrentStateIndex(idx)}
-                  />
+                  </motion.div>
                 ))}
               </div>
             </div>
-          </section>
-        )
-      }
 
-      {/* Profession Cards Section */}
-      <section className="profession-section">
-        <h2 className="section-title"><FaBriefcase /> People in {user?.locality}</h2>
-        <div className="profession-grid">
-          {professionStats.map((stat, idx) => (
-            <motion.div
-              key={idx}
-              whileHover={{ scale: 1.05, y: -5 }}
-              whileTap={{ scale: 0.95 }}
-              className="profession-card"
-              onClick={() => handleProfessionClick(stat.profession)}
+            <Button
+              unstyled
+              className="state-carousel-nav right"
+              onClick={() => scrollStateCarousel('right')}
+              aria-label="Scroll states right"
             >
-              <div className="profession-icon">
-                {professionIcons[stat.profession] || "👤"}
-              </div>
-              <h4>{stat.profession}</h4>
-              <div className="profession-count">
-                <FaUsers /> {stat.count}
-              </div>
-            </motion.div>
-          ))}
+              <FiChevronRight size={20} />
+            </Button>
+          </div>
         </div>
-      </section>
+      )}
+
+      {/* Quick Actions Grid */}
+      <div className="quick-actions">
+        <motion.div
+          whileHover={{ y: -4 }}
+          whileTap={{ scale: 0.98 }}
+          className="quick-action-card emergency"
+          onClick={() => setShowModal('emergency')}
+        >
+          <div className="quick-action-icon error">
+            <FiAlertCircle size={24} />
+          </div>
+          <div className="quick-action-content">
+            <h3>{t("home_report_emergency")}</h3>
+            <p>{t("home_emergency_desc") || "Report urgent situations in your area"}</p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ y: -4 }}
+          whileTap={{ scale: 0.98 }}
+          className="quick-action-card"
+          onClick={() => setShowModal('service')}
+        >
+          <div className="quick-action-icon primary">
+            <FiHeart size={24} />
+          </div>
+          <div className="quick-action-content">
+            <h3>{t("home_need_help")}</h3>
+            <p>{t("home_help_desc") || "Request or offer community assistance"}</p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ y: -4 }}
+          whileTap={{ scale: 0.98 }}
+          className="quick-action-card"
+          onClick={() => navigate('/events')}
+        >
+          <div className="quick-action-icon success">
+            <FiCalendar size={24} />
+          </div>
+          <div className="quick-action-content">
+            <h3>{t("events_title") || "Events"}</h3>
+            <p>{t("home_events_desc") || "Discover local events and gatherings"}</p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ y: -4 }}
+          whileTap={{ scale: 0.98 }}
+          className="quick-action-card"
+          onClick={() => navigate('/tourism')}
+        >
+          <div className="quick-action-icon warning">
+            <FiMap size={24} />
+          </div>
+          <div className="quick-action-content">
+            <h3>{t("home_local_markets")}</h3>
+            <p>{t("home_rates_desc") || "Explore places and local markets"}</p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="stats-row">
+        <div className="card card-stat">
+          <div className="card-stat-icon" style={{ backgroundColor: 'var(--bg-brand-subtle)', color: 'var(--color-primary-600)' }}>
+            <FiZap size={20} />
+          </div>
+          <div className="card-stat-content">
+            <span className="card-stat-value">{user?.impactScore || 0}</span>
+            <span className="card-stat-label">Impact Score</span>
+          </div>
+        </div>
+        <div className="card card-stat">
+          <div className="card-stat-icon" style={{ backgroundColor: 'var(--color-error-50)', color: 'var(--color-error-600)' }}>
+            <FiAlertCircle size={20} />
+          </div>
+          <div className="card-stat-content">
+            <span className="card-stat-value">{emergencies.length}</span>
+            <span className="card-stat-label">Active Emergencies</span>
+          </div>
+        </div>
+        <div className="card card-stat">
+          <div className="card-stat-icon" style={{ backgroundColor: 'var(--color-success-50)', color: 'var(--color-success-600)' }}>
+            <FiHeart size={20} />
+          </div>
+          <div className="card-stat-content">
+            <span className="card-stat-value">{services.length}</span>
+            <span className="card-stat-label">Active Requests</span>
+          </div>
+        </div>
+      </div>
 
       {/* Emergency Alerts Section */}
-      {
-        emergencies.length > 0 && (
-          <section className="emergency-alerts-section">
-            <h2 className="section-title alert-title">
-              <FaExclamationCircle className="pulse" /> {t("home_active_emergencies")}
+      {emergencies.length > 0 && (
+        <div className="content-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <FiAlertCircle className="section-title-icon" style={{ color: 'var(--color-error-500)' }} />
+              {t("home_active_emergencies")}
             </h2>
-            <div className="emergency-alerts-list">
-              {emergencies.slice(0, 3).map(em => (
-                <motion.div
-                  key={em._id}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  className={`emergency-alert-card priority-${em.priority}`}
-                >
-                  <div className="alert-badge">{em.priority}</div>
-                  <h4>{em.type}</h4>
-                  <p>{em.description}</p>
-                  <div className="alert-meta">
-                    <span><FaPhoneAlt /> {em.contactNumber}</span>
-                    <span><FaMapMarkerAlt /> {em.locality}</span>
+            <Button unstyled className="section-action" onClick={() => navigate('/emergency')}>
+              View All <FiArrowRight size={16} />
+            </Button>
+          </div>
+          <div className="emergency-list">
+            {emergencies.slice(0, 3).map(em => (
+              <motion.div
+                key={em._id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`emergency-card ${em.priority?.toLowerCase() || 'medium'}`}
+              >
+                <div className="emergency-card-content">
+                  <div className="emergency-card-header">
+                    <span className="emergency-type">{em.type}</span>
+                    <span className={`badge badge-${em.priority?.toLowerCase() === 'high' ? 'error' : em.priority?.toLowerCase() === 'low' ? 'success' : 'warning'}`}>
+                      {em.priority}
+                    </span>
                   </div>
-                  <button className="btn-help" onClick={() => navigate('/emergency')}>
-                    {t("i_can_help")}
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )
-      }
-
-      {/* Main Features Grid */}
-      <main className="features-container">
-        <h2 className="section-title">{t("home_community_hub") || "Community Hub"}</h2>
-        <div className="features-grid">
-          <motion.div
-            whileHover={{ y: -10 }}
-            className="feature-card glass high-priority"
-            onClick={() => setShowModal('emergency')}
-          >
-            <div className="card-icon"><FaBullhorn /></div>
-            <h3>{t("home_report_emergency")}</h3>
-            <p>{t("home_emergency_desc")}</p>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ y: -10 }}
-            className="feature-card glass"
-            onClick={() => setShowModal('service')}
-          >
-            <div className="card-icon"><FaHandHoldingHeart /></div>
-            <h3>{t("home_need_help")}</h3>
-            <p>{t("home_help_desc")}</p>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ y: -10 }}
-            className="feature-card glass"
-            onClick={() => navigate('/events')}
-          >
-            <div className="card-icon"><FaCalendarAlt /></div>
-            <h3>{t("events_title") || "Events"}</h3>
-            <p>{t("home_events_desc")}</p>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ y: -10 }}
-            className="feature-card glass"
-            onClick={() => navigate('/tourism')}
-          >
-            <div className="card-icon"><FaShoppingBasket /></div>
-            <h3>{t("home_local_markets")}</h3>
-            <p>{t("home_rates_desc")}</p>
-          </motion.div>
-        </div>
-      </main>
-
-      {/* Services Feed */}
-      {
-        services.length > 0 && (
-          <section className="services-feed-section">
-            <h2 className="section-title">{t("home_feed") || "Community Feed"}</h2>
-            <div className="services-feed">
-              {services.slice(0, 4).map(service => (
-                <motion.div
-                  key={service._id}
-                  whileHover={{ y: -5 }}
-                  className="service-feed-card glass"
-                >
-                  <div className={`service-type-badge ${service.type === 'Request' ? 'request' : 'offer'}`}>
-                    {service.type}
+                  <p className="emergency-description">{em.description}</p>
+                  <div className="emergency-meta">
+                    <span className="emergency-meta-item">
+                      <FiPhone size={12} /> {em.contactNumber}
+                    </span>
+                    <span className="emergency-meta-item">
+                      <FiMapPin size={12} /> {em.locality}
+                    </span>
                   </div>
-                  <h4>{service.category}</h4>
-                  <p>{service.description}</p>
-                  <div className="service-meta">
-                    <span><FaUser /> {service.requesterId?.name || "Community Member"}</span>
-                    <span><FaMapMarkerAlt /> {service.locality}</span>
-                  </div>
-                  <button className="btn-respond">{t("home_help_now") || "Respond"}</button>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )
-      }
+                </div>
+                <div className="emergency-actions">
+                  <Button variant="primary" size="sm" onClick={() => navigate('/emergency')}>
+                    {t("i_can_help") || "Help"}
+                  </Button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
-      {/* Community Stats */}
-      <section className="community-stats glass">
-        <div className="stat-item">
-          <span className="stat-val">{user?.impactScore || 0}</span>
-          <span className="stat-label">Impact Score</span>
+      {/* Services Feed Section */}
+      {services.length > 0 && (
+        <div className="content-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <FiHeart className="section-title-icon" />
+              {t("home_feed") || "Community Feed"}
+            </h2>
+            <Button unstyled className="section-action" onClick={() => navigate('/services')}>
+              View All <FiArrowRight size={16} />
+            </Button>
+          </div>
+          <div className="services-grid">
+            {services.slice(0, 4).map(service => (
+              <motion.div
+                key={service._id}
+                whileHover={{ y: -4 }}
+                className="service-card"
+              >
+                <div className="service-card-header">
+                  <div className="service-card-top">
+                    <span className="service-category">{service.category}</span>
+                    <span className={`service-type-badge ${service.type?.toLowerCase() || 'request'}`}>
+                      {service.type}
+                    </span>
+                  </div>
+                  <p className="service-description">{service.description}</p>
+                </div>
+                <div className="service-card-body">
+                  <div className="service-requester">
+                    <div className="avatar avatar-md">
+                      {service.requesterId?.name?.[0] || 'U'}
+                    </div>
+                    <div className="service-requester-info">
+                      <span className="service-requester-name">
+                        {service.requesterId?.name || "Community Member"}
+                      </span>
+                      <span className="service-requester-meta">
+                        <FiMapPin size={12} /> {service.locality}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="service-card-footer">
+                  <Button variant="secondary" size="sm">View Details</Button>
+                  <Button variant="primary" size="sm">Respond</Button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
-        <div className="stat-item">
-          <span className="stat-val">{emergencies.length}</span>
-          <span className="stat-label">Active Emergencies</span>
+      )}
+
+      {/* Profession Section */}
+      {professionStats.length > 0 && (
+        <div className="content-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <FiBriefcase className="section-title-icon" />
+              People in {user?.locality}
+            </h2>
+          </div>
+          <div className="profession-grid">
+            {professionStats.map((stat, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                className="profession-card"
+                onClick={() => handleProfessionClick(stat.profession)}
+              >
+                <span className="profession-icon">
+                  {professionIcons[stat.profession] || "👤"}
+                </span>
+                <span className="profession-name">{stat.profession}</span>
+                <span className="profession-count">
+                  <FiUsers size={14} /> {stat.count}
+                </span>
+              </motion.div>
+            ))}
+          </div>
         </div>
-        <div className="stat-item">
-          <span className="stat-val">{services.length}</span>
-          <span className="stat-label">Active Requests</span>
-        </div>
-      </section>
+      )}
 
       {/* Form Modals */}
       <AnimatePresence>
         {showModal && (
-          <div className="modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="modal-backdrop" onClick={() => setShowModal(null)}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="modal-container glass"
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="modal modal-md"
               onClick={e => e.stopPropagation()}
             >
-              <button className="modal-close" onClick={() => setShowModal(null)}><FaTimes /></button>
-              {showModal === 'service' ? (
-                <ServiceForm onSuccess={() => { setShowModal(null); fetchData(); }} />
-              ) : (
-                <EmergencyForm onSuccess={() => { setShowModal(null); fetchData(); }} />
-              )}
+              <div className="modal-header">
+                <h2 className="modal-title">
+                  {showModal === 'service' ? t("home_need_help") : t("home_report_emergency")}
+                </h2>
+                <Button variant="ghost" className="btn-icon-only" onClick={() => setShowModal(null)} aria-label="Close">
+                  <FiX size={20} />
+                </Button>
+              </div>
+              <div className="modal-body">
+                {showModal === 'service' ? (
+                  <ServiceForm onSuccess={() => { setShowModal(null); fetchData(); }} />
+                ) : (
+                  <EmergencyForm onSuccess={() => { setShowModal(null); fetchData(); }} />
+                )}
+              </div>
             </motion.div>
           </div>
         )}
@@ -403,49 +491,73 @@ function Home() {
       {/* People List Modal */}
       <AnimatePresence>
         {selectedProfession && (
-          <div className="modal-overlay" onClick={closePeopleModal}>
+          <div className="modal-backdrop" onClick={closePeopleModal}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="modal-container people-modal glass"
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="modal modal-md"
               onClick={e => e.stopPropagation()}
             >
-              <button className="modal-close" onClick={closePeopleModal}><FaTimes /></button>
-              <h2 className="modal-title">
-                {professionIcons[selectedProfession]} {selectedProfession} in {user?.locality}
-              </h2>
-
-              {loadingPeople ? (
-                <div className="loader-center">
-                  <div className="premium-spinner"></div>
-                </div>
-              ) : professionPeople.length > 0 ? (
-                <div className="people-list">
-                  {professionPeople.map(person => (
-                    <div key={person._id} className="person-card">
-                      <div className="person-avatar">{person.name?.[0]}</div>
-                      <div className="person-info">
-                        <h4>{person.name}</h4>
-                        <p>{person.profession}</p>
-                        <div className="person-meta">
-                          <span><FaPhoneAlt /> {person.phone}</span>
-                          {person.ratings?.average > 0 && (
-                            <span className="rating"><FaStar /> {person.ratings.average.toFixed(1)}</span>
-                          )}
+              <div className="modal-header">
+                <h2 className="modal-title">
+                  {professionIcons[selectedProfession]} {selectedProfession} in {user?.locality}
+                </h2>
+                <Button variant="ghost" className="btn-icon-only" onClick={closePeopleModal} aria-label="Close">
+                  <FiX size={20} />
+                </Button>
+              </div>
+              <div className="modal-body">
+                {loadingPeople ? (
+                  <div className="loading-container">
+                    <div className="spinner spinner-md"></div>
+                    <p>Loading...</p>
+                  </div>
+                ) : professionPeople.length > 0 ? (
+                  <div className="flex flex-col gap-3">
+                    {professionPeople.map(person => (
+                      <div key={person._id} className="card" style={{ padding: 'var(--space-4)' }}>
+                        <div className="flex gap-4 items-center">
+                          <div className="avatar avatar-lg">
+                            {person.name?.[0]}
+                          </div>
+                          <div className="flex-1">
+                            <h4 style={{ fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
+                              {person.name}
+                            </h4>
+                            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-2)' }}>
+                              {person.profession}
+                            </p>
+                            <div className="flex gap-4" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
+                              <span className="flex items-center gap-1">
+                                <FiPhone size={12} /> {person.phone}
+                              </span>
+                              {person.ratings?.average > 0 && (
+                                <span className="flex items-center gap-1" style={{ color: 'var(--color-warning-500)' }}>
+                                  <FiStar size={12} /> {person.ratings.average.toFixed(1)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="empty-state">No people found in this category.</p>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <span style={{ fontSize: '2rem', marginBottom: 'var(--space-4)' }}>👥</span>
+                    <h3 className="empty-state-title">No people found</h3>
+                    <p className="empty-state-description">
+                      No community members found in this category.
+                    </p>
+                  </div>
+                )}
+              </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-    </div >
+      </div>
   );
 }
 

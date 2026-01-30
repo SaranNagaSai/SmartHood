@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { registerUser, authUser, getMyActivity, updateFcmToken } = require("../controllers/authController");
+const { registerUser, loginUser, getMyActivity } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
+const { authLimiter } = require("../middleware/rateLimiters");
 
-router.post("/register", registerUser);
-router.post("/login", authUser);
+router.post("/register", authLimiter, registerUser);
+router.post("/login", authLimiter, loginUser);
 router.get("/my-activity", protect, getMyActivity);
-router.put("/fcm-token", protect, updateFcmToken);
 
 module.exports = router;

@@ -1,0 +1,574 @@
+✅ SMART HOOD (మన పరిసర వేదిక)
+A Multilingual, Hyperlocal, Intelligent Community Collaboration Platform
+1. PROJECT OVERVIEW
+
+Smart Hood is a hyperlocal digital platform designed to connect people within structured geographic boundaries:
+
+State → District → Town → Locality
+
+The platform focuses on:
+
+Local trust building
+
+Real human-to-human collaboration
+
+Community-based problem solving
+
+Intelligent, context-aware communication
+
+Modern, professional, scalable system architecture
+
+The system is built as a PWA-first web application with push notifications, modular UI, and secure backend APIs.
+
+2. CORE PLATFORM GOALS
+
+Clean, modern, attractive UI (already implemented via GPT-generated UI)
+
+Hyperlocal discovery and collaboration
+
+Strong role-based access control
+
+Zero OTP authentication
+
+Secure password-based login
+
+PWA push notification system
+
+Transparent service and revenue tracking
+
+Emergency-priority communication system
+
+Scalable backend suitable for future AI features
+
+Production-grade architecture
+
+3. USER ROLES & ACCESS
+3.1 Normal User
+
+A resident, professional, volunteer, or general community member.
+
+Capabilities:
+
+Register and log in
+
+Create service requests
+
+Provide services
+
+Receive notifications
+
+Express interest in services
+
+Communicate externally after interest
+
+Explore tourism & local places
+
+Track personal activity
+
+View revenue statistics
+
+3.2 Student User
+
+Activated automatically when:
+
+Profession = Student
+
+Additional Features:
+
+Student-only service categories
+
+Academic help requests
+
+Skill volunteering
+
+Student participation analytics
+
+Leaderboards
+
+3.3 Admin User (Verified Access Only)
+Admin login entry:
+
+Visible on landing page
+
+Label: Admin Login
+
+Admin access granted only if:
+
+Logged-in email / phone number matches one of the pre-approved admin identifiers stored in backend environment variables.
+
+Admin Permissions:
+
+Platform analytics dashboard
+
+Emergency monitoring
+
+Complaint review
+
+Geography-wise statistics
+
+User statistics
+
+Admin Restrictions:
+
+Admins cannot:
+
+Access private user communications
+
+Modify revenue records
+
+Change ratings
+
+View personal chats
+
+4. AUTHENTICATION SYSTEM (UPDATED)
+✅ NO OTP SYSTEM
+
+OTP verification is fully removed.
+
+4.1 Registration (Simplified)
+
+Only basic information is required at signup.
+
+Required Fields:
+
+Username (unique)
+
+Full Name
+
+Email or Phone Number (at least one required)
+
+Password
+
+Preferred Language
+
+State
+
+District
+
+Town
+
+Locality
+
+Optional at Registration:
+
+Phone number (if email used)
+
+Email address (if phone used)
+
+4.2 Profile Completion (After Login)
+
+Remaining details are completed later via Profile Page.
+
+Profile Fields:
+
+Age
+
+Gender
+
+Profession
+
+Years of experience
+
+Monthly income
+
+Blood group
+
+Nationality
+
+Complete address
+
+Profile image
+
+This approach:
+
+Improves onboarding speed
+
+Reduces registration friction
+
+Increases user conversion rate
+
+4.3 Login System (FINAL)
+Login Inputs:
+
+Username or Email or Phone Number
+
+Password
+
+Validation Logic:
+
+System accepts any of the three identifiers
+
+Password-based authentication
+
+JWT-based session handling
+
+Refresh-token supported
+
+5. UNIQUE USER ID SYSTEM
+
+Generated automatically at registration.
+
+Format:
+3 uppercase letters + 2 digits
+Example: SHD48
+
+Used For:
+
+Public identity reference
+
+Service confirmation
+
+Revenue tracking
+
+Notifications
+
+Profile display
+
+Displayed:
+
+Beside username
+
+On profile
+
+In service notifications
+
+6. UI / UX DESIGN REQUIREMENTS
+UI Status:
+
+✅ Already generated via GPT and must be preserved.
+
+Design Philosophy:
+
+Clean
+
+Professional
+
+Trustworthy
+
+Community-focused
+
+Mobile-first
+
+Responsive
+
+Theme System:
+
+Light theme (default)
+
+Dark theme (optional future scope)
+
+Color Semantics:
+Purpose	Color
+Primary	Indigo / Deep Blue
+Secondary	Teal / Soft Green
+Accent	Orange
+Emergency	Red
+Background	Soft grey / off-white
+7. HOME DASHBOARD
+
+Displays:
+
+Emergency alerts (highest priority)
+
+State → District → Town → Locality cards
+
+Profession service cards
+
+Community announcements
+
+Events
+
+Card Rules:
+
+Every card must include an image
+
+Images auto-fetched from web where possible
+
+Profession cards use representative images
+
+8. SERVICE REQUEST FLOW
+8.1 Create Service Request
+
+Inputs:
+
+Service description (text)
+
+Mandatory voice input
+
+Category
+
+Geographic scope
+
+Location context
+
+8.2 Interest Flow
+
+When another user clicks:
+
+"I'm Interested"
+
+
+Requester’s contact details become visible
+
+Communication happens outside the platform
+
+Platform does not host private chat
+
+8.3 Work Completion Confirmation
+
+After a configurable time:
+
+Requester is prompted:
+
+Is the work completed?
+YES / NO
+
+
+If YES:
+
+Provider Unique ID entered
+
+Amount spent (optional)
+
+8.4 Revenue Tracking Rules
+
+If money entered:
+
+Provider → Revenue Generated
+
+Requester → Revenue Spent
+
+If no money:
+
+Values remain zero
+
+Fields still displayed
+
+Every user profile shows:
+
+Revenue Generated
+
+Revenue Spent
+
+9. NOTIFICATION SYSTEM (PWA-BASED)
+9.1 Technology
+
+Progressive Web App (PWA)
+
+Service Worker
+
+Firebase Cloud Messaging
+
+Browser Push API
+
+9.2 Notification Channels
+Channel	Usage	Mandatory
+Web Push (PWA)	Primary	✅ Yes
+Email	Optional	⚪ Optional
+SMS	Emergency fallback	⚠️ Conditional
+9.3 Notification Categories
+
+Main Tabs:
+
+Provide Service
+
+Ask Service
+
+Subcategories:
+
+Official
+
+Emergency
+
+Community
+
+Specific
+
+9.4 Specific Notification Flow
+
+If Specific selected:
+
+All users
+OR
+
+Selected profession → selected users
+
+Message supports:
+
+Text
+
+Voice
+
+Attachments
+
+Delivery:
+
+Web push notification
+
+Email if available
+
+10. EMERGENCY MODULE
+
+Supports:
+
+Blood donation
+
+Medical emergency
+
+Accidents
+
+Fire & safety
+
+Missing persons
+
+Natural disasters
+
+Custom voice-defined emergencies
+
+Features:
+
+Priority-based routing
+
+Distinct alert sound
+
+UI emphasis
+
+Auto-expiry
+
+Abuse prevention & rate limiting
+
+11. TOURISM & LOCAL DISCOVERY (CORE FEATURE)
+
+Displays:
+
+Restaurants
+
+Movie halls
+
+Shopping malls
+
+Tourist places
+
+Scope:
+
+User locality
+
+Nearby towns
+
+Nearby districts
+
+Each place card includes:
+
+Image
+
+Name
+
+Category
+
+Description
+
+Location
+
+12. PROFILE & ACTIVITY
+
+Displays:
+
+Personal details
+
+Unique User ID
+
+Services requested
+
+Services completed
+
+Emergency participation
+
+Ratings
+
+Leaderboard rank
+
+Revenue generated
+
+Revenue spent
+
+13. BACKEND ARCHITECTURE
+Technology Stack
+Frontend:
+
+React.js
+
+PWA
+
+Service Worker
+
+Web Speech API
+
+Backend:
+
+Node.js
+
+Express.js
+
+MongoDB
+
+JWT Authentication
+
+Firebase Cloud Messaging
+
+Socket.IO (real-time events)
+
+14. DATABASE COLLECTIONS
+
+Users
+
+Geography hierarchy
+
+Services
+
+Notifications
+
+Emergencies
+
+Revenue logs
+
+Tourism data
+
+Analytics
+
+Indexes:
+
+username
+
+email
+
+phoneNumber
+
+uniqueUserId
+
+geography fields
+
+15. CONTEXT-AWARE REACH LOGIC
+Level	Reach
+Locality	Same locality
+Town	Entire town
+District	Entire district
+State	Entire state
+16. FINAL EXPECTATIONS
+
+UI remains unchanged (already finalized)
+
+Strong backend validation
+
+Clean API contracts
+
+Secure authentication
+
+PWA notifications functional
+
+Modular architecture
+
+Scalable for AI features
+
+Review & viva ready
+
+Production-grade structure

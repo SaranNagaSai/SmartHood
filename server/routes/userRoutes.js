@@ -4,6 +4,9 @@ const {
     getUserProfile,
     updateUserProfile,
     updateUserLocality,
+    changePassword,
+    logoutAllSessions,
+    deleteAccount,
 } = require("../controllers/userController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -13,5 +16,9 @@ router.route("/profile")
 
 router.route("/locality")
     .put(protect, updateUserLocality);
+
+router.put("/password", protect, changePassword);
+router.post("/logout-all", protect, logoutAllSessions);
+router.delete("/account", protect, deleteAccount);
 
 module.exports = router;

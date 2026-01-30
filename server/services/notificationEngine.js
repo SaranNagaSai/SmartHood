@@ -1,46 +1,128 @@
-const admin = require("../config/firebase");
+const { sendPushNotification } = require("../controllers/notificationController");
+const User = require("../models/User");
+const Notification = require("../models/Notification");
 const logger = require("../utils/logger");
+const { sendMulticast } = require("./fcmService");
 
 /**
- * Sends a push notification to a specific user device
- * @param {string} token - FCM Device Token
- * @param {object} payload - Notification data (title, body, etc.)
+ * Adapter to send notification (legacy helper)
  */
-const sendPushNotification = async (token, payload) => {
-    if (!token) {
-        logger.warn("Attempted to send notification without a device token");
-        return;
+const sendNotification = async (userId, title, body, data) => {
+    const payload = {
+        title,
+        body,
+        data,
+        url: '/emergency'
+    };
+    await sendPushNotification(userId, payload);
+};
+
+const normalizeIdSet = (ids) => new Set((ids || []).map((id) => id?.toString()).filter(Boolean));
+
+const broadcastEmergencyToUsers = async ({ users, payload, excludeUserIds }) => {
+    const exclude = normalizeIdSet(excludeUserIds);
+    const filteredUsers = (users || []).filter((u) => !exclude.has(u._id?.toString()));
+
+    if (!filteredUsers.length) return { notifiedUserIds: [] };
+
+    const notificationsToInsert = filteredUsers.map((user) => ({
+        recipient: user._id,
+        type: 'Emergency',
+        title: `🚨 ${payload.title}`,
+        message: payload.body,
+        urgency: 'High',
+        isRead: false,
+        data: payload.data,
+    }));
+
+    await Notification.insertMany(notificationsToInsert);
+
+    const tokens = filteredUsers
+        .flatMap((u) => (u.fcmTokens || []).map((t) => t.token))
+        .filter(Boolean);
+
+    const result = await sendMulticast({
+        tokens,
+        title: `🚨 ${payload.title}`,
+        body: payload.body,
+        url: "/emergency",
+        data: payload.data,
+        urgency: "high",
+    });
+
+    if (result.invalidTokens && result.invalidTokens.length > 0) {
+        await User.updateMany(
+            { "fcmTokens.token": { $in: result.invalidTokens } },
+            { $pull: { fcmTokens: { token: { $in: result.invalidTokens } } } }
+        );
     }
 
-    const message = {
-        notification: {
-            title: payload.title,
-            body: payload.body,
-        },
-        data: payload.data || {},
-        token: token,
-        android: {
-            priority: payload.priority === 'High' ? 'high' : 'normal',
-            notification: {
-                sound: payload.sound || 'default',
-            }
+    return { notifiedUserIds: filteredUsers.map((u) => u._id) };
+};
+
+const getUsersForEscalationLevel = async ({ emergency, level }) => {
+    if (!emergency) return [];
+
+    if (level === "locality") {
+        return User.find({ locality: emergency.locality });
+    }
+
+    if (level === "town_or_city") {
+        if (emergency.town) {
+            return User.find({ $or: [{ town: emergency.town }, { city: emergency.city }] });
         }
+        return User.find({ city: emergency.city });
+    }
+
+    if (level === "district") {
+        if (!emergency.district) return User.find({ city: emergency.city });
+        return User.find({ district: emergency.district });
+    }
+
+    if (level === "state") {
+        return User.find({ state: emergency.state });
+    }
+
+    return [];
+};
+
+const broadcastEmergencyEscalationStep = async ({ emergency, level }) => {
+    if (!emergency || !level) return { notifiedUserIds: [] };
+
+    const users = await getUsersForEscalationLevel({ emergency, level });
+    const excludeUserIds = [
+        ...(emergency.notifiedUserIds || []),
+        emergency.reporterId,
+    ];
+
+    const payload = {
+        title: `${emergency.priority} Emergency: ${emergency.type}`,
+        body: emergency.description,
+        data: { emergencyId: emergency._id.toString(), escalationLevel: level },
     };
 
-    try {
-        const response = await admin.messaging().send(message);
-        logger.info(`Successfully sent notification: ${response}`);
-        return response;
-    } catch (error) {
-        logger.error(`Error sending notification to ${token}: ${error.message}`);
-        // Optionally handle token expiration/invalidity here
+    const result = await broadcastEmergencyToUsers({ users, payload, excludeUserIds });
+
+    if (result.notifiedUserIds.length) {
+        await emergency.updateOne({ $addToSet: { notifiedUserIds: { $each: result.notifiedUserIds } } });
+    }
+
+    logger.info(`Emergency escalation broadcast: level=${level} users=${result.notifiedUserIds.length}`);
+    return result;
+};
+
+const broadcastEmergencyAllLevels = async ({ emergency }) => {
+    // High-priority: broadcast immediately to all levels in required order.
+    const levels = ["locality", "town_or_city", "district", "state"];
+    for (const level of levels) {
+        // eslint-disable-next-line no-await-in-loop
+        await broadcastEmergencyEscalationStep({ emergency, level });
     }
 };
 
 /**
  * Broadcasts an emergency notification to a topic (locality)
- * @param {string} topic - The locality or 'broadcast'
- * @param {object} payload - Notification data
+ * Replaced Firebase Topic Messaging with Database Iteration (Web Push)
  */
 const broadcastEmergency = async (topic, payload) => {
     if (!topic) {
@@ -48,54 +130,18 @@ const broadcastEmergency = async (topic, payload) => {
         return;
     }
 
-    const message = {
-        notification: {
-            title: `🚨 EMERGENCY: ${payload.title}`,
-            body: payload.body,
-        },
-        topic: topic,
-        android: {
-            priority: 'high',
-            notification: {
-                sound: 'emergency_alert', // Custom sound for emergencies
-                channelId: 'emergency_channel'
-            }
-        },
-        data: payload.data || {}
-    };
-
     try {
-        // 1. Send Firebase Cloud Messaging (FCM) Broadcast
-        const response = await admin.messaging().send(message);
-        logger.info(`Successfully broadcasted emergency to topic ${topic}: ${response}`);
-
-        // 2. Persist to Database for all users in that locality
-        // Finding users in the topic (locality)
-        const Notification = require("../models/Notification");
-        const User = require("../models/User");
-
-        // This can be heavy for large user bases, but fine for prototype/MVP
-        const usersInLocality = await User.find({ locality: topic }).select('_id');
-
-        if (usersInLocality.length > 0) {
-            const notificationsToInsert = usersInLocality.map(user => ({
-                recipient: user._id,
-                type: 'Emergency',
-                title: `🚨 ${payload.title}`,
-                message: payload.body,
-                urgency: 'High',
-                isRead: false,
-                data: payload.data
-            }));
-
-            await Notification.insertMany(notificationsToInsert);
-            logger.info(`Persisted emergency notification for ${usersInLocality.length} users in ${topic}`);
-        }
-
-        return response;
+        const users = await User.find({ locality: topic });
+        const result = await broadcastEmergencyToUsers({ users, payload, excludeUserIds: [] });
+        logger.info(`Persisted and broadcasted emergency notification for ${result.notifiedUserIds.length} users in ${topic}`);
     } catch (error) {
         logger.error(`Error broadcasting emergency to topic ${topic}: ${error.message}`);
     }
 };
 
-module.exports = { sendPushNotification, broadcastEmergency };
+module.exports = {
+    sendNotification,
+    broadcastEmergency,
+    broadcastEmergencyEscalationStep,
+    broadcastEmergencyAllLevels,
+};

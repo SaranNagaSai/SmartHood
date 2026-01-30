@@ -3,9 +3,14 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaStar, FaTimes, FaPaperPlane } from 'react-icons/fa';
 import API from '../../services/api';
-import './RatingModal.css';
+import Button from "../ui/Button";
+import TextAreaField from "../ui/TextAreaField";
+import useToast from "../../hooks/useToast";
+
+const MotionButton = motion.create(Button);
 
 export default function RatingModal({ isOpen, onClose, serviceId, providerId, providerName, onSuccess }) {
+    const { addToast } = useToast();
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState('');
@@ -14,7 +19,7 @@ export default function RatingModal({ isOpen, onClose, serviceId, providerId, pr
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (rating === 0) {
-            alert("Please select a rating");
+            addToast("Please select a rating", { type: "error" });
             return;
         }
 
@@ -26,11 +31,11 @@ export default function RatingModal({ isOpen, onClose, serviceId, providerId, pr
                 score: rating,
                 comment
             });
-            alert("Thank you for your rating!");
+            addToast("Thank you for your rating!", { type: "success" });
             onSuccess?.();
             onClose();
         } catch (error) {
-            alert(error.response?.data?.message || "Failed to submit rating");
+            addToast(error.response?.data?.message || "Failed to submit rating", { type: "error" });
         } finally {
             setLoading(false);
         }
@@ -46,12 +51,12 @@ export default function RatingModal({ isOpen, onClose, serviceId, providerId, pr
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="rating-modal glass"
+                        className="modal modal-sm rating-modal"
                         onClick={e => e.stopPropagation()}
                     >
-                        <button className="modal-close-btn" onClick={onClose}>
+                        <Button type="button" variant="ghost" size="sm" className="modal-close" onClick={onClose} aria-label="Close">
                             <FaTimes />
-                        </button>
+                        </Button>
 
                         <div className="rating-header">
                             <h2>Rate Your Experience</h2>
@@ -63,9 +68,10 @@ export default function RatingModal({ isOpen, onClose, serviceId, providerId, pr
                             <div className="star-rating-container">
                                 <div className="stars">
                                     {[1, 2, 3, 4, 5].map(star => (
-                                        <motion.button
+                                        <MotionButton
                                             key={star}
                                             type="button"
+                                            unstyled
                                             whileHover={{ scale: 1.2 }}
                                             whileTap={{ scale: 0.9 }}
                                             className={`star-btn ${star <= (hoverRating || rating) ? 'active' : ''}`}
@@ -74,7 +80,7 @@ export default function RatingModal({ isOpen, onClose, serviceId, providerId, pr
                                             onMouseLeave={() => setHoverRating(0)}
                                         >
                                             <FaStar />
-                                        </motion.button>
+                                        </MotionButton>
                                     ))}
                                 </div>
                                 <span className="rating-label">
@@ -84,8 +90,9 @@ export default function RatingModal({ isOpen, onClose, serviceId, providerId, pr
 
                             {/* Comment */}
                             <div className="comment-section">
-                                <label>Add a comment (optional)</label>
-                                <textarea
+                                <label className="form-label">Add a comment (optional)</label>
+                                <TextAreaField
+                                    className="textarea"
                                     placeholder="Share your experience..."
                                     value={comment}
                                     onChange={e => setComment(e.target.value)}
@@ -94,17 +101,15 @@ export default function RatingModal({ isOpen, onClose, serviceId, providerId, pr
                             </div>
 
                             {/* Submit Button */}
-                            <button
+                            <Button
                                 type="submit"
-                                className="btn-submit-rating"
                                 disabled={loading || rating === 0}
+                                loading={loading}
+                                block
+                                rightIcon={<FaPaperPlane />}
                             >
-                                {loading ? 'Submitting...' : (
-                                    <>
-                                        <FaPaperPlane /> Submit Rating
-                                    </>
-                                )}
-                            </button>
+                                {loading ? 'Submitting...' : 'Submit Rating'}
+                            </Button>
                         </form>
                     </motion.div>
                 </div>

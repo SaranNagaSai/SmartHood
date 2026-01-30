@@ -20,6 +20,9 @@ yarn-error.log*
 server/.env
 frontend/.env
 
+# Local notes that may contain secrets (do not commit)
+project key links and passwords..txt
+
 # Firebase
 firebase-debug.log
 .firebase/

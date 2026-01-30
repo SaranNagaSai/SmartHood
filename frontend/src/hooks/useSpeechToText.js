@@ -2,16 +2,27 @@
 // Automatically switches speech language based on UI language (EN / TE)
 
 import { useTranslation } from "react-i18next";
+import useToast from "./useToast";
 
 export default function useSpeechInput(setValue) {
   const { i18n } = useTranslation();
+  let addToast;
+  try {
+    ({ addToast } = useToast());
+  } catch {
+    addToast = null;
+  }
 
   const startSpeech = () => {
     // Support both standard and WebKit-prefixed API
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      if (addToast) {
+        addToast("Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.", { type: "error" });
+      } else {
+        console.warn("Speech recognition is not supported in this browser.");
+      }
       return;
     }
 
@@ -43,7 +54,11 @@ export default function useSpeechInput(setValue) {
         : `Speech recognition failed (${event.error}). Please try again close to the microphone.`;
 
       if (event.error !== 'no-speech') {
-        alert(msg);
+        if (addToast) {
+          addToast(msg, { type: "error" });
+        } else {
+          console.warn(msg);
+        }
       }
     };
 
